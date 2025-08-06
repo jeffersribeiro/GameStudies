@@ -17,5 +17,5 @@ void main()
     Tex0 = texture(texture0, TexCoord);
     Tex1 = texture(texture1, TexCoord);
     
-    FragColor = mix(Tex0, Tex1, opacity);
+    FragColor = mix(Tex0, Tex1, 0.3);
 }

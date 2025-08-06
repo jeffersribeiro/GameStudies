@@ -1,0 +1,14 @@
+{
+    "editor.quickSuggestions": {
+        "other": false,
+        "comments": false,
+        "strings": false
+    },
+    "editor.snippetSuggestions": "none",
+    "editor.quickSuggestionsDelay": 1073741824,
+    "editor.suggest.snippetsPreventQuickSuggestions": true,
+    "[csharp]": {
+        "editor.acceptSuggestionOnTab": false,
+        "editor.tabCompletion": "off"
+    }
+}

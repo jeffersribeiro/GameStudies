@@ -1,79 +1,83 @@
+using System.IO;
 using OpenTK.Graphics.OpenGL4;
+using OpenTK.Mathematics;
 using StbImageSharp;
 
 namespace GameStudies.Source
 {
     public class Mesh
     {
-        private float[] _vertices;
-        private int[] _textures;
-        private string[] _texPaths;
-        private int _VAO = 0;
-        private int _VBO = 0;
-        private int _EBO = 0;
-        Shader _shader;
+        public Vector3 Position;
+        public float Rotation;
+        public Vector3 Scale = Vector3.One;
+        public Matrix4 ModelMatrix =>
+        Matrix4.CreateTranslation(Position)
+        * Matrix4.CreateRotationZ(Rotation)
+        * Matrix4.CreateScale(Scale);
 
-        int[] indices = {
-        0, 1, 3, // first triangle
-        1, 2, 3  // second triangle
-    };
+        private readonly Shader _shader;
+        private readonly float[] _vertices;
+        private readonly uint[] _indices = new uint[36];
+        private int _vao, _vbo, _ebo;
+        private List<string> _texPaths = new();
+        private int[] _textures = Array.Empty<int>();
 
 
 
-        public Mesh(float[] vertices, string[] texPaths)
+        public Mesh(Shader shader, float[] vertices, string[] texPaths)
         {
-
-            const string vert = "C:/Users/Jeffe/OneDrive/Documents/Projects/GameStudies/shaders/shader.vert";
-            const string frag = "C:/Users/Jeffe/OneDrive/Documents/Projects/GameStudies/shaders/shader.frag";
-
-            _shader = new Shader(vert, frag);
-
+            _shader = shader;
             _vertices = vertices;
-            _texPaths = texPaths;
+            _texPaths = new List<string>(texPaths);
         }
 
         public void Load()
         {
 
+            for (uint i = 0; i < 36; i++) _indices[i] = i;
+
+
             // Generate VAO and VBO
-            _VAO = GL.GenVertexArray();
-            _VBO = GL.GenBuffer();
-            _EBO = GL.GenBuffer();
+            _vao = GL.GenVertexArray();
+            _vbo = GL.GenBuffer();
+            _ebo = GL.GenBuffer();
 
-            GL.BindVertexArray(_VAO);
+            GL.BindVertexArray(_vao);
 
-            GL.BindBuffer(BufferTarget.ElementArrayBuffer, _EBO);
-            GL.BindBuffer(BufferTarget.ElementArrayBuffer, _VBO);
-            GL.BufferData(BufferTarget.ElementArrayBuffer, _vertices.Length * sizeof(float), _vertices, BufferUsageHint.StaticDraw);
+            GL.BindBuffer(BufferTarget.ArrayBuffer, _vbo);
+            GL.BufferData(BufferTarget.ArrayBuffer, _vertices.Length * sizeof(float), _vertices, BufferUsageHint.StaticDraw);
 
-            // position attribute
-            GL.VertexAttribPointer(0, 3, VertexAttribPointerType.Float, false, 8 * sizeof(float), 0);
+            GL.BindBuffer(BufferTarget.ElementArrayBuffer, _ebo);
+            GL.BufferData(BufferTarget.ElementArrayBuffer, _indices.Length * sizeof(uint), _indices, BufferUsageHint.StaticDraw);
+
+            // aPos @ location 0 (vec3)
             GL.EnableVertexAttribArray(0);
+            GL.VertexAttribPointer(0, 3, VertexAttribPointerType.Float, false, 5 * sizeof(float), 0);
 
-            // color attribute
-            GL.VertexAttribPointer(1, 3, VertexAttribPointerType.Float, false, 8 * sizeof(float), 3 * sizeof(float));
-            GL.EnableVertexAttribArray(1);
+            // // aColor @ location 1 (vec3)
+            // GL.EnableVertexAttribArray(1);
+            // GL.VertexAttribPointer(1, 3, VertexAttribPointerType.Float, false, 5 * sizeof(float), 3 * sizeof(float));
 
-            // texture coord attribute
-            GL.VertexAttribPointer(1, 3, VertexAttribPointerType.Float, false, 8 * sizeof(float), 6 * sizeof(float));
+            // aTexCoord @ location 2 (vec2)
             GL.EnableVertexAttribArray(2);
+            GL.VertexAttribPointer(2, 2, VertexAttribPointerType.Float, false, 5 * sizeof(float), 3 * sizeof(float));
 
             GL.BindVertexArray(0);
         }
 
         public void LoadTextures()
         {
-            if (_texPaths.Length == 0)
+            if (_texPaths.Count == 0)
             {
                 throw new Exception("please set any texture path");
             }
 
-            _textures = new int[_texPaths.Length];
+            _textures = new int[_texPaths.Count];
+            GL.GenTextures(_textures.Length, _textures);
 
-
-            for (int i = 0; i < _texPaths.Length; i++)
+            for (int i = 0; i < _texPaths.Count; i++)
             {
-                _textures[i] = GL.GenTexture();
+                GL.ActiveTexture(TextureUnit.Texture0 + i);
                 GL.BindTexture(TextureTarget.Texture2D, _textures[i]);
 
                 GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureWrapS, (int)TextureWrapMode.Repeat);
@@ -81,45 +85,27 @@ namespace GameStudies.Source
                 GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMinFilter, (int)TextureMinFilter.LinearMipmapNearest);
                 GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMagFilter, (int)TextureMagFilter.Linear);
 
-                StbImage.stbi_set_flip_vertically_on_load(1);
-
                 using var stream = File.OpenRead(_texPaths[i]);
-
                 var image = ImageResult.FromStream(stream, ColorComponents.RedGreenBlueAlpha);
 
-                int width = image.Width;
-                int height = image.Height;
-                ColorComponents nrChannels = image.Comp;
-                byte[] pixels = image.Data;
-
-                PixelInternalFormat internalFormat = (int)nrChannels switch
-                {
-                    1 => PixelInternalFormat.R8,
-                    2 => PixelInternalFormat.Rg8,
-                    3 => PixelInternalFormat.Rgb8,
-                    4 => PixelInternalFormat.Rgba8,
-                    _ => throw new NotSupportedException($"Canais não suportados: {nrChannels}")
-                };
-
-                PixelFormat pixelFormat = (int)nrChannels switch
-                {
-                    1 => PixelFormat.Red,
-                    2 => PixelFormat.Rg,
-                    3 => PixelFormat.Rgb,
-                    4 => PixelFormat.Rgba,
-                    _ => throw new NotSupportedException($"Canais não suportados: {nrChannels}")
-                };
-
-
-                GL.TexImage2D(TextureTarget.Texture2D, 0, internalFormat, width, height, 0, pixelFormat, PixelType.UnsignedByte, pixels);
+                // upload
+                GL.TexImage2D(TextureTarget.Texture2D,
+                              level: 0,
+                              internalformat: PixelInternalFormat.Rgba,
+                              width: image.Width,
+                              height: image.Height,
+                              border: 0,
+                              format: PixelFormat.Rgba,
+                              type: PixelType.UnsignedByte,
+                              pixels: image.Data);
 
                 GL.GenerateMipmap(GenerateMipmapTarget.Texture2D);
 
+                // tell shader which sampler to use
                 _shader.Use();
-                string texName = "texture" + i;
-                _shader.SetInt(texName, i);
-            }
+                _shader.SetInt($"texture{i}", i);
 
+            }
         }
 
         public void Draw()
@@ -132,18 +118,19 @@ namespace GameStudies.Source
 
             _shader.Use();
 
-            GL.BindVertexArray(_VAO);
-            GL.DrawElements(PrimitiveType.Triangles, 6, DrawElementsType.UnsignedInt, 0);
+            GL.BindVertexArray(_vao);
+            GL.DrawElements(PrimitiveType.Triangles, _indices.Length, DrawElementsType.UnsignedInt, 0);
+            GL.BindVertexArray(0);
         }
 
         public void Dispose()
         {
             _shader.Delete();
 
-            GL.DeleteVertexArrays(1, ref _VAO);
-            GL.DeleteBuffers(1, ref _VBO);
-            GL.DeleteBuffers(1, ref _EBO);
-
+            if (_textures.Length > 0) GL.DeleteTextures(_textures.Length, _textures);
+            GL.DeleteVertexArrays(1, ref _vao);
+            GL.DeleteBuffers(1, ref _vbo);
+            GL.DeleteBuffers(1, ref _ebo);
         }
     }
 }
