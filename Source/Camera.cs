@@ -5,7 +5,7 @@ namespace GameStudies.Source
 {
     public class Camera
     {
-        public Vector3 Position = new(1.0f, 0.0f, -3.0f);
+        public Vector3 Position = new(1.0f, 0.0f, 7.0f);
         public Vector3 Target;
         public Vector3 Front { get; private set; } = -Vector3.UnitZ;
         public Vector3 Up { get; private set; } = Vector3.UnitY;
@@ -32,18 +32,18 @@ namespace GameStudies.Source
 
         public Camera() { }
 
-        public void ProcessKeyboard(Keys key, float deltaTime)
+        public void ProcessKeyboard(KeyboardState kb, float deltaTime)
         {
             float velocity = Speed * deltaTime;
 
             var right = Vector3.Normalize(Vector3.Cross(Front, Up));
 
-            if (key == Keys.W) Position += Front * velocity;
-            if (key == Keys.S) Position -= Front * velocity;
-            if (key == Keys.A) Position -= right * velocity;
-            if (key == Keys.D) Position += right * velocity;
-            if (key == Keys.Space) Up += Up * velocity;
-            if (key == Keys.LeftControl) Up -= Up * velocity;
+            if (kb.IsKeyDown(Keys.W)) Position += Front * velocity;
+            if (kb.IsKeyDown(Keys.S)) Position -= Front * velocity;
+            if (kb.IsKeyDown(Keys.A)) Position -= right * velocity;
+            if (kb.IsKeyDown(Keys.D)) Position += right * velocity;
+            if (kb.IsKeyDown(Keys.Space)) Up += Up * velocity;
+            if (kb.IsKeyDown(Keys.LeftControl)) Up -= Up * velocity;
 
         }
 

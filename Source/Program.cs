@@ -40,8 +40,8 @@ namespace GameStudies.Source
             const float rotSpeed = 60;
 
 
-            var pos = Helpers.GenRandomPosition();
-            CubeObject cube = new(shader, pos);
+            CubeObject cube1 = new(shader, Helpers.GenRandomPosition());
+            CubeObject cube2 = new(shader, Helpers.GenRandomPosition());
 
             game.Load += () =>
             {
@@ -58,12 +58,10 @@ namespace GameStudies.Source
                 lastFrame = currentFrame;
 
                 var kb = game.KeyboardState;
-                if (kb.IsKeyDown(Keys.W)) camera.ProcessKeyboard(Keys.W, (float)e.Time);
-                if (kb.IsKeyDown(Keys.S)) camera.ProcessKeyboard(Keys.S, (float)e.Time);
-                if (kb.IsKeyDown(Keys.A)) camera.ProcessKeyboard(Keys.A, (float)e.Time);
-                if (kb.IsKeyDown(Keys.D)) camera.ProcessKeyboard(Keys.D, (float)e.Time);
-                if (kb.IsKeyDown(Keys.Space)) camera.ProcessKeyboard(Keys.Space, (float)e.Time);
-                if (kb.IsKeyDown(Keys.LeftControl)) camera.ProcessKeyboard(Keys.LeftControl, (float)e.Time);
+                camera.ProcessKeyboard(kb, (float)e.Time);
+                cube1.ProcessKeyboard(kb, (float)e.Time);
+                // cube2.ProcessKeyboard(kb, (float)e.Time);
+
             };
 
             game.MouseMove += e =>
@@ -107,7 +105,8 @@ namespace GameStudies.Source
                 shader.SetMatrix4("view", view);
                 shader.SetMatrix4("projection", proj);
 
-                cube.Draw();
+                cube1.Draw();
+                cube2.Draw();
 
 
                 game.SwapBuffers();
@@ -115,7 +114,8 @@ namespace GameStudies.Source
 
             game.Unload += () =>
             {
-                cube.Dispose();
+                cube1.Dispose();
+                cube2.Dispose();
 
             };
 
