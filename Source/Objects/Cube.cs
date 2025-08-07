@@ -43,7 +43,7 @@ namespace GameStudies.Obects
         public void SetPositionY(float value) => Position = new(Position.X, value, Position.Z);
         public void SetPositionZ(float value) => Position = new(Position.X, Position.Y, value);
 
-        public void Draw(Matrix4 view, Matrix4 proj)
+        public void Draw()
         {
             var model = Mesh.ModelMatrix
             * Matrix4.CreateScale(Scale)
@@ -53,8 +53,6 @@ namespace GameStudies.Obects
             * Matrix4.CreateTranslation(Position);
 
             _shader.SetMatrix4("model", model);
-            _shader.SetMatrix4("view", view);
-            _shader.SetMatrix4("projection", proj);
 
             Mesh.Draw();
         }
