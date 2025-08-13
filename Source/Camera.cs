@@ -42,8 +42,8 @@ namespace GameStudies.Source
             if (kb.IsKeyDown(Keys.S)) Position -= Front * velocity;
             if (kb.IsKeyDown(Keys.A)) Position -= right * velocity;
             if (kb.IsKeyDown(Keys.D)) Position += right * velocity;
-            if (kb.IsKeyDown(Keys.Space)) Up += Up * velocity;
-            if (kb.IsKeyDown(Keys.LeftControl)) Up -= Up * velocity;
+            if (kb.IsKeyDown(Keys.Space)) Position += Up * velocity;
+            if (kb.IsKeyDown(Keys.LeftControl)) Position -= Up * velocity;
 
         }
 

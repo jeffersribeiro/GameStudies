@@ -24,15 +24,12 @@ namespace GameStudies.Source
             const string lightVert = "C:/Users/Jeffe/OneDrive/Documents/Projects/GameStudies/shaders/light.vert";
             const string lightFrag = "C:/Users/Jeffe/OneDrive/Documents/Projects/GameStudies/shaders/light.frag";
 
-            float deltaTime = 0.0f;
-            float lastFrame = 0.0f;
-
             var shader = new Shader(vert, frag);
             var lightCubeShader = new Shader(lightVert, lightFrag);
 
             var camera = new Camera();
 
-            CubeObject cube1 = new(shader, Helpers.GenRandomPosition());
+            // CubeObject cube1 = new(shader, Helpers.GenRandomPosition());
             CubeObject cube2 = new(lightCubeShader, Helpers.GenRandomPosition());
 
             game.Load += () =>
@@ -47,7 +44,7 @@ namespace GameStudies.Source
 
                 var kb = game.KeyboardState;
                 camera.ProcessKeyboard(kb, (float)e.Time);
-                cube1.ProcessKeyboard(kb, (float)e.Time);
+                cube2.ProcessKeyboard(kb, (float)e.Time);
 
             };
 
@@ -78,7 +75,7 @@ namespace GameStudies.Source
                 shader.SetMat4("view", view);
                 shader.SetMat4("projection", proj);
 
-                cube1.Draw();
+                // cube1.Draw();
 
                 lightCubeShader.Use();
                 lightCubeShader.SetMat4("view", view);
@@ -92,7 +89,7 @@ namespace GameStudies.Source
 
             game.Unload += () =>
             {
-                cube1.Dispose();
+                // cube1.Dispose();
                 cube2.Dispose();
 
             };

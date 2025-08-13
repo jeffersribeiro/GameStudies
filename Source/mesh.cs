@@ -65,7 +65,7 @@ namespace GameStudies.Source
             GL.EnableVertexAttribArray(2);
 
             // aTexCoord @ location 2 (vec2)
-            GL.VertexAttribPointer(2, 2, VertexAttribPointerType.Float, false, 11 * sizeof(float), 9 * sizeof(float));
+            GL.VertexAttribPointer(3, 2, VertexAttribPointerType.Float, false, 11 * sizeof(float), 9 * sizeof(float));
             GL.EnableVertexAttribArray(3);
 
             GL.BindVertexArray(0);
@@ -122,7 +122,7 @@ namespace GameStudies.Source
 
             _shader.Use();
             _shader.SetVec3("lightColor", new(1.0f, 1.0f, 1.0f));
-            _shader.SetVec3("lightPos", new(0, 0, 0));
+            _shader.SetVec3("lightPos", new(0.5f, 1.0f, -0.3f));
         }
 
         public void Draw()
