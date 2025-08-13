@@ -1,21 +1,16 @@
 #version 330 core
 
+in vec3 vColor;
+in vec2 vUV;
+
 out vec4 FragColor;
-out vec4 Tex0;
-out vec4 Tex1;
-in vec3 ourColor;
-in vec3 ourPos;
-in vec2 TexCoord;
 
+uniform bool uUseTexture;
+uniform vec4 uColor;
 uniform sampler2D texture0;
-uniform sampler2D texture1;
-
-uniform float opacity = 1.0;
 
 void main()
 {
-    Tex0 = texture(texture0, TexCoord);
-    Tex1 = texture(texture1, TexCoord);
-    
-    FragColor = mix(Tex0, Tex1, 0.3);
+    vec4 base = uUseTexture ? texture(texture0, vUV) : vec4(vColor, 1.0);;
+    FragColor = base;
 }

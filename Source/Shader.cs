@@ -64,25 +64,32 @@ namespace GameStudies.Source
             GL.Uniform1(GL.GetUniformLocation(Prog, name), value);
         }
 
-        public void setBool(string name, bool value)
+        public void SetBool(string name, bool value)
         {
             GL.Uniform1(GL.GetUniformLocation(Prog, name), value ? 1 : 0);
         }
 
-        public void setInt(string name, int value)
+        public void SetFloat(string name, float value)
         {
             GL.Uniform1(GL.GetUniformLocation(Prog, name), value);
         }
 
-        public void setFloat(string name, float value)
-        {
-            GL.Uniform1(GL.GetUniformLocation(Prog, name), value);
-        }
-
-        public void SetMatrix4(string name, Matrix4 value)
+        public void SetVec3(string name, Vector3 v)
         {
             int transformLoc = GL.GetUniformLocation(Prog, name);
-            GL.UniformMatrix4(transformLoc, false, ref value);
+            GL.Uniform3(transformLoc, v);
+        }
+
+        public void SetVec4(string name, Vector4 v)
+        {
+            int transformLoc = GL.GetUniformLocation(Prog, name);
+            GL.Uniform4(transformLoc, v);
+        }
+
+        public void SetMat4(string name, Matrix4 m)
+        {
+            int transformLoc = GL.GetUniformLocation(Prog, name);
+            GL.UniformMatrix4(transformLoc, false, ref m);
         }
 
     }

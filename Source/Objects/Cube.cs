@@ -3,7 +3,7 @@ using GameStudies.Source;
 using OpenTK.Mathematics;
 using OpenTK.Windowing.GraphicsLibraryFramework;
 
-namespace GameStudies.Obects
+namespace GameStudies.Objects
 {
     public class CubeObject
     {
@@ -22,8 +22,7 @@ namespace GameStudies.Obects
             var vertices = CubeFactory.CreateVertices();
 
             string[] texPaths = [
-                "C:/Users/Jeffe/OneDrive/Documents/Projects/GameStudies/assets/container_texture.png",
-                "C:/Users/Jeffe/OneDrive/Documents/Projects/GameStudies/assets/smile_emoji.png",
+                // "C:/Users/Jeffe/OneDrive/Documents/Projects/GameStudies/assets/container_texture.png",
             ];
 
             Mesh = new Mesh(_shader, vertices, texPaths);
@@ -54,7 +53,7 @@ namespace GameStudies.Obects
             * Matrix4.CreateRotationZ(MathHelper.DegreesToRadians(Rotation.Z))
             * Matrix4.CreateTranslation(Position);
 
-            _shader.SetMatrix4("model", model);
+            _shader.SetMat4("model", model);
 
             Mesh.Draw();
         }
