@@ -6,9 +6,20 @@
     },
     "editor.snippetSuggestions": "none",
     "editor.quickSuggestionsDelay": 1073741824,
+    "editor.colorDecorators": true,
     "editor.suggest.snippetsPreventQuickSuggestions": true,
     "[csharp]": {
         "editor.acceptSuggestionOnTab": false,
         "editor.tabCompletion": "off"
-    }
+    },
+    "webgl-glsl-editor.format.placeSpaceAfterKeywords": true,
+    "[glsl]": {
+        "editor.defaultFormatter": "raczzalan.webgl-glsl-editor"
+    },
+    "[frag]": {
+        "editor.defaultFormatter": "raczzalan.webgl-glsl-editor"
+    },
+    "[vert]": {
+        "editor.defaultFormatter": "raczzalan.webgl-glsl-editor"
+    },
 }

@@ -9,8 +9,7 @@ uniform bool uUseTexture;
 uniform vec4 uColor;
 uniform sampler2D texture0;
 
-void main()
-{
-    vec4 base = uUseTexture ? texture(texture0, vUV) : vec4(vColor, 1.0);;
+void main() {
+    vec4 base = uUseTexture ? texture(texture0, vUV) : vec4(vColor, 1.0);
     FragColor = base;
 }
