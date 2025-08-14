@@ -119,10 +119,6 @@ namespace GameStudies.Source
                 _shader.SetVec4("uColor", new(0.2f, 0.8f, 0.3f, 1.0f));
 
             }
-
-            _shader.Use();
-            _shader.SetVec3("lightColor", new(1.0f, 1.0f, 1.0f));
-            _shader.SetVec3("lightPos", new(0.5f, 1.0f, -0.3f));
         }
 
         public void Draw()

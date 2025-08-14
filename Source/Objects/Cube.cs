@@ -66,7 +66,6 @@ namespace GameStudies.Objects
             if (kb.IsKeyDown(Keys.Left)) Position.X -= velocity;
             if (kb.IsKeyDown(Keys.Up)) Position.Z -= velocity;
             if (kb.IsKeyDown(Keys.Down)) Position.Z += velocity;
-
         }
     }
 }

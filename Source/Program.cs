@@ -29,13 +29,14 @@ namespace GameStudies.Source
 
             var camera = new Camera();
 
-            // CubeObject cube1 = new(shader, Helpers.GenRandomPosition());
+            CubeObject cube1 = new(lightCubeShader, Helpers.GenRandomPosition());
             CubeObject cube2 = new(lightCubeShader, Helpers.GenRandomPosition());
+            CubeLight cubeLight = new(lightCubeShader);
 
             game.Load += () =>
             {
                 GL.Enable(EnableCap.DepthTest);
-
+                cubeLight.Load();
             };
 
             game.UpdateFrame += e =>
@@ -44,7 +45,7 @@ namespace GameStudies.Source
 
                 var kb = game.KeyboardState;
                 camera.ProcessKeyboard(kb, (float)e.Time);
-                cube2.ProcessKeyboard(kb, (float)e.Time);
+                cubeLight.ProcessKeyboard(kb, (float)e.Time);
 
             };
 
@@ -75,12 +76,17 @@ namespace GameStudies.Source
                 shader.SetMat4("view", view);
                 shader.SetMat4("projection", proj);
 
-                // cube1.Draw();
 
                 lightCubeShader.Use();
                 lightCubeShader.SetMat4("view", view);
                 lightCubeShader.SetMat4("projection", proj);
 
+                lightCubeShader.SetVec3("viewPos", camera.Position);
+
+
+                cubeLight.Draw();
+
+                cube1.Draw();
                 cube2.Draw();
 
 
@@ -89,9 +95,9 @@ namespace GameStudies.Source
 
             game.Unload += () =>
             {
-                // cube1.Dispose();
+                cubeLight.Dispose();
+                cube1.Dispose();
                 cube2.Dispose();
-
             };
 
             game.Run();
