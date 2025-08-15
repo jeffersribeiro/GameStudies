@@ -93,17 +93,37 @@ namespace GameStudies.Objects
             GL.EnableVertexAttribArray(0);
         }
 
-        public void Draw()
+        public void Draw(float dt)
         {
 
             _shader.Use();
 
+
             var model = Matrix4.CreateScale(Scale) * Matrix4.CreateTranslation(Position);
 
+
             _shader.SetMat4("model", model);
-            _shader.SetVec3("uColor", Color);
-            _shader.SetVec3("lightColor", Color);
-            _shader.SetVec3("lightPos", Position);
+            // _shader.SetVec3("aColor", Color);
+
+            _shader.SetVec3("material.ambient", new(1.0f, 1.0f, 0.5f));
+            _shader.SetVec3("material.diffuse", new(1.0f, 0.36f, 0.0f));
+            _shader.SetVec3("material.specular", new(1.0f, 1.0f, 1.0f));
+            _shader.SetFloat("material.shininess", 64.0f);
+
+            Vector3 lightColor;
+
+
+            lightColor.X = (float)Math.Sin(dt * 2.0f);
+            lightColor.Y = (float)Math.Sin(dt * 0.7f);
+            lightColor.Z = (float)Math.Sin(dt * 1.3f);
+
+            Vector3 diffuseColor = lightColor * new Vector3(0.5f);
+            Vector3 ambientColor = diffuseColor * new Vector3(1.0f);
+
+            _shader.SetVec3("light.position", Position);
+            _shader.SetVec3("light.ambient", new(0.5f, 0.9f, 0.2f));
+            _shader.SetVec3("light.diffuse", ambientColor);
+            _shader.SetVec3("light.specular", new(1.0f, 1.0f, 1.0f));
 
             GL.BindVertexArray(_vao);
             GL.DrawArrays(PrimitiveType.Triangles, 0, 36);

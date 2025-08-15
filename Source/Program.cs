@@ -29,8 +29,8 @@ namespace GameStudies.Source
 
             var camera = new Camera();
 
-            CubeObject cube1 = new(lightCubeShader, Helpers.GenRandomPosition());
-            CubeObject cube2 = new(lightCubeShader, Helpers.GenRandomPosition());
+            CubeObject cube1 = new(lightCubeShader, new(-0.5f, -0.5f, 0.26f));
+            CubeObject cube2 = new(lightCubeShader, new(1.0f, -0.5f, 0.99f));
             CubeLight cubeLight = new(lightCubeShader);
 
             game.Load += () =>
@@ -65,6 +65,8 @@ namespace GameStudies.Source
 
             game.RenderFrame += args =>
             {
+                var dt = (float)args.Time;
+
                 GL.ClearColor(0.09f, 0.09f, 0.09f, 0f);
                 GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
 
@@ -83,8 +85,7 @@ namespace GameStudies.Source
 
                 lightCubeShader.SetVec3("viewPos", camera.Position);
 
-
-                cubeLight.Draw();
+                cubeLight.Draw(dt);
 
                 cube1.Draw();
                 cube2.Draw();
