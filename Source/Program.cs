@@ -29,8 +29,8 @@ namespace GameStudies.Source
 
             var camera = new Camera();
 
-            CubeObject cube1 = new(lightCubeShader, new(-0.5f, -0.5f, 0.26f));
-            CubeObject cube2 = new(lightCubeShader, new(1.0f, -0.5f, 0.99f));
+            CubeObject cube1 = new(lightCubeShader, new(-0.5f, 0.0f, 0.26f));
+            CubeObject cube2 = new(lightCubeShader, new(1.0f, 0.0f, 0.99f));
             CubeLight cubeLight = new(lightCubeShader);
 
             game.Load += () =>

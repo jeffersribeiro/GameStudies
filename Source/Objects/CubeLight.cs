@@ -77,7 +77,6 @@ namespace GameStudies.Objects
             GL.BindBuffer(BufferTarget.ArrayBuffer, _vbo);
             GL.BufferData(BufferTarget.ArrayBuffer, _cubeVerts.Length * sizeof(float), _cubeVerts, BufferUsageHint.StaticDraw);
 
-
             // aPos @ location 0 (vec3)
             GL.VertexAttribPointer(0, 3, VertexAttribPointerType.Float, false, 9 * sizeof(float), 0);
             GL.EnableVertexAttribArray(0);
@@ -105,25 +104,24 @@ namespace GameStudies.Objects
             _shader.SetMat4("model", model);
             // _shader.SetVec3("aColor", Color);
 
-            _shader.SetVec3("material.ambient", new(1.0f, 1.0f, 0.5f));
-            _shader.SetVec3("material.diffuse", new(1.0f, 0.36f, 0.0f));
-            _shader.SetVec3("material.specular", new(1.0f, 1.0f, 1.0f));
-            _shader.SetFloat("material.shininess", 64.0f);
+            _shader.SetInt("material.diffuse", 0);
+            _shader.SetInt("material.specular", 1);
 
-            Vector3 lightColor;
+            Vector3 lightColor = new(0.0f, 0.0f, 0.0f);
 
+            // lightColor.X = (float)Math.Sin(dt * 2.0f);
+            // lightColor.Y = (float)Math.Sin(dt * 0.0f);
+            // lightColor.Z = (float)Math.Sin(dt * 0.0f);
 
-            lightColor.X = (float)Math.Sin(dt * 2.0f);
-            lightColor.Y = (float)Math.Sin(dt * 0.7f);
-            lightColor.Z = (float)Math.Sin(dt * 1.3f);
-
-            Vector3 diffuseColor = lightColor * new Vector3(0.5f);
-            Vector3 ambientColor = diffuseColor * new Vector3(1.0f);
+            Vector3 diffuseColor = lightColor * new Vector3(0);
+            Vector3 ambientColor = diffuseColor * new Vector3(0);
 
             _shader.SetVec3("light.position", Position);
-            _shader.SetVec3("light.ambient", new(0.5f, 0.9f, 0.2f));
-            _shader.SetVec3("light.diffuse", ambientColor);
+            _shader.SetVec3("light.ambient", new(0.2f, 0.2f, 0.2f));
+            _shader.SetVec3("light.diffuse", new(0.5f, 0.5f, 0.5f));
             _shader.SetVec3("light.specular", new(1.0f, 1.0f, 1.0f));
+
+            _shader.SetFloat("material.shininess", 64.0f);
 
             GL.BindVertexArray(_vao);
             GL.DrawArrays(PrimitiveType.Triangles, 0, 36);

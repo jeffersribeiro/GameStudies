@@ -22,7 +22,8 @@ namespace GameStudies.Objects
             var vertices = CubeFactory.CreateVertices();
 
             string[] texPaths = [
-                // "C:/Users/Jeffe/OneDrive/Documents/Projects/GameStudies/assets/container_texture.png",
+                "C:/Users/Jeffe/OneDrive/Documents/Projects/GameStudies/assets/wood_container_texture.png",
+                "C:/Users/Jeffe/OneDrive/Documents/Projects/GameStudies/assets/container_steel_border.png",
             ];
 
             Mesh = new Mesh(_shader, vertices, texPaths);
@@ -35,14 +36,6 @@ namespace GameStudies.Objects
         {
             Mesh.Dispose();
         }
-
-        public void SetRotationX(float value) => Rotation = new(value, Rotation.Y, Rotation.Z);
-        public void SetRotationY(float value) => Rotation = new(Rotation.X, value, Rotation.Z);
-        public void SetRotationZ(float value) => Rotation = new(Rotation.X, Rotation.Y, value);
-        public void SetScale(float scale) => Scale = new(scale);
-        public void SetPositionX(float value) => Position = new(value, Position.Y, Position.Z);
-        public void SetPositionY(float value) => Position = new(Position.X, value, Position.Z);
-        public void SetPositionZ(float value) => Position = new(Position.X, Position.Y, value);
 
         public void Draw()
         {

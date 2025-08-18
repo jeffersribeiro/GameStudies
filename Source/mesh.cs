@@ -36,7 +36,6 @@ namespace GameStudies.Source
 
             for (uint i = 0; i < 36; i++) _indices[i] = i;
 
-
             // Generate VAO and VBO
             _vao = GL.GenVertexArray();
             _lightVAO = GL.GenVertexArray();
@@ -106,19 +105,18 @@ namespace GameStudies.Source
 
                     // tell shader which sampler to use
                     _shader.Use();
-                    _shader.SetBool("uUseTexture", true);
-                    _shader.SetInt($"texture{i}", i);
+                    // _shader.SetBool("uUseTexture", true);
+                    // _shader.SetInt($"texture{i}", i);
                 }
-
             }
             else
             {
                 _shader.Use();
-                _shader.SetBool("uUseTexture", false);
-                _shader.SetFloat("dummy", 0f);
-                _shader.SetVec4("uColor", new(0.2f, 0.8f, 0.3f, 1.0f));
-
+                // _shader.SetBool("uUseTexture", false);
+                // _shader.SetFloat("dummy", 0f);
+                // _shader.SetVec4("uColor", new(0.2f, 0.8f, 0.3f, 1.0f));
             }
+
         }
 
         public void Draw()
