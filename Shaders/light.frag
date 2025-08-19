@@ -10,6 +10,7 @@ struct Light {
     vec3 direction;
     vec3 position;
     float cutOff;
+    float outerCutOff;
 
     vec3 ambient;
     vec3 diffuse;
@@ -20,7 +21,6 @@ struct Light {
     float quadratic;
 };
 
-in vec3 vColor;
 in vec2 vUV;
 in vec3 Normal;
 in vec3 FragPos;
@@ -34,10 +34,11 @@ uniform Material material;
 void main() {
     vec3 lightDir = normalize(light.position - FragPos);
 
+    // check if lighting is inside the spotlight cone
     float theta = dot(lightDir, normalize(-light.direction));
 
-    if (theta > light.cutOff) {
-
+    if (theta > light.cutOff) // remember that we're working with angles as cosines instead of degrees so a '>' is used.
+    {
         // ambient
         vec3 ambient = light.ambient * texture(material.diffuse, vUV).rgb;
 
@@ -60,12 +61,10 @@ void main() {
         diffuse *= attenuation;
         specular *= attenuation;
 
-        // do lighting calculations
-        vec3 result = (ambient + diffuse + specular);
+        vec3 result = ambient + diffuse + specular;
         FragColor = vec4(result, 1.0);
     } else {
-        // else use ambient light so scene ins't completely dark outside the spotlight
-        FragColor = vec4(light.ambient * vec3(texture(material.diffuse, vUV)).rgb, 1.0);
+        // else, use ambient light so scene isn't completely dark outside the spotlight.
+        FragColor = vec4(light.ambient * texture(material.diffuse, vUV).rgb, 1.0);
     }
-
 }

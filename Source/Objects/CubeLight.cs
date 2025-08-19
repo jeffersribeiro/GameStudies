@@ -115,7 +115,7 @@ namespace GameStudies.Objects
             Vector3 diffuseColor = Color * DiffuseColor;
             Vector3 ambientColor = Color * AmbientColor;
 
-            // _shader.SetVec3("light.direction", new(-0.2f, -1.0f, -0.3f));
+            _shader.SetVec3("light.direction", new(0.2f, 1.0f, 0.3f));
             _shader.SetVec3("light.position", Position);
             _shader.SetVec3("light.ambient", ambientColor);
             _shader.SetFloat("light.cutOff", MathF.Cos(Radians(12.5f)));
@@ -124,9 +124,9 @@ namespace GameStudies.Objects
             _shader.SetVec3("light.specular", new(1.0f, 1.0f, 1.0f));
 
 
-            // _shader.SetFloat("light.constant", 1.0f);
-            // _shader.SetFloat("light.linear", 0.09f);
-            // _shader.SetFloat("light.quadratic", 0.032f);
+            _shader.SetFloat("light.constant", 1.0f);
+            _shader.SetFloat("light.linear", 0.09f);
+            _shader.SetFloat("light.quadratic", 0.032f);
 
             _shader.SetFloat("material.shininess", 64.0f);
 
