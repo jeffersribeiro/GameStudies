@@ -62,7 +62,6 @@ namespace GameStudies.Source
         {
             Fov -= offset.Y;
             Fov = MathHelper.Clamp(Fov, 1f, 90f);
-            Console.WriteLine(ProjectionMatrix);
         }
 
         private void UpdateVectors()

@@ -9,10 +9,14 @@ namespace GameStudies.Objects
     {
 
         private int _vao, _vbo;
-        public Vector3 Position = new(0.0f, 0.0f, -0.0f);
-        public Vector3 Color { get; set; } = new(1.0f, 1.0f, 1.0f);
+        public Vector3 Position = new(0.0f, 0.0f, 0.0f);
+        public Vector3 Color { get; set; } = new(1f);
+        public Vector3 AmbientColor = new(0.2f);
+        public Vector3 DiffuseColor = new(1.0f);
         public float Scale { get; set; } = 0.2f;
         public float Speed { get; set; } = 1.5f;
+
+        static float Radians(float deg) => deg * (MathF.PI / 180f);
 
 
         private static readonly float[] _cubeVerts = {
@@ -107,19 +111,22 @@ namespace GameStudies.Objects
             _shader.SetInt("material.diffuse", 0);
             _shader.SetInt("material.specular", 1);
 
-            Vector3 lightColor = new(0.0f, 0.0f, 0.0f);
 
-            // lightColor.X = (float)Math.Sin(dt * 2.0f);
-            // lightColor.Y = (float)Math.Sin(dt * 0.0f);
-            // lightColor.Z = (float)Math.Sin(dt * 0.0f);
+            Vector3 diffuseColor = Color * DiffuseColor;
+            Vector3 ambientColor = Color * AmbientColor;
 
-            Vector3 diffuseColor = lightColor * new Vector3(0);
-            Vector3 ambientColor = diffuseColor * new Vector3(0);
-
+            // _shader.SetVec3("light.direction", new(-0.2f, -1.0f, -0.3f));
             _shader.SetVec3("light.position", Position);
-            _shader.SetVec3("light.ambient", new(0.2f, 0.2f, 0.2f));
-            _shader.SetVec3("light.diffuse", new(0.5f, 0.5f, 0.5f));
+            _shader.SetVec3("light.ambient", ambientColor);
+            _shader.SetFloat("light.cutOff", MathF.Cos(Radians(12.5f)));
+
+            _shader.SetVec3("light.diffuse", diffuseColor);
             _shader.SetVec3("light.specular", new(1.0f, 1.0f, 1.0f));
+
+
+            // _shader.SetFloat("light.constant", 1.0f);
+            // _shader.SetFloat("light.linear", 0.09f);
+            // _shader.SetFloat("light.quadratic", 0.032f);
 
             _shader.SetFloat("material.shininess", 64.0f);
 
@@ -135,6 +142,11 @@ namespace GameStudies.Objects
             if (kb.IsKeyDown(Keys.Left)) Position.X -= velocity;
             if (kb.IsKeyDown(Keys.Up)) Position.Z -= velocity;
             if (kb.IsKeyDown(Keys.Down)) Position.Z += velocity;
+        }
+
+        public void ProcessMouseScroll(Vector2 offset)
+        {
+            AmbientColor += new Vector3(offset.Y * 0.01f);
         }
 
         public void Dispose()

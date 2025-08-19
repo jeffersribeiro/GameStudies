@@ -13,8 +13,8 @@ namespace GameStudies.Source
         {
             var nativeSettings = new NativeWindowSettings()
             {
-                Size = new Vector2i(800, 600),
-                Title = "GameStudies"
+                Size = new Vector2i(1920, 1080),
+                Title = "GameStudies",
             };
             using var game = new GameWindow(GameWindowSettings.Default, nativeSettings);
 
@@ -29,14 +29,23 @@ namespace GameStudies.Source
 
             var camera = new Camera();
 
-            CubeObject cube1 = new(lightCubeShader, new(-0.5f, 0.0f, 0.26f));
-            CubeObject cube2 = new(lightCubeShader, new(1.0f, 0.0f, 0.99f));
-            CubeLight cubeLight = new(lightCubeShader);
+            int quantityCubes = 10;
+            List<CubeObject> cubes = [];
+
+            for (int i = 0; i < quantityCubes; i++)
+            {
+                cubes.Add(new CubeObject(lightCubeShader, Helpers.GenRandomPosition()));
+                cubes[i].Rotation = Helpers.GenRandomRotation();
+            }
+
+            CubeLight cubeLight1 = new(lightCubeShader);
 
             game.Load += () =>
             {
+                game.WindowState = OpenTK.Windowing.Common.WindowState.Maximized;
+
                 GL.Enable(EnableCap.DepthTest);
-                cubeLight.Load();
+                cubeLight1.Load();
             };
 
             game.UpdateFrame += e =>
@@ -45,7 +54,7 @@ namespace GameStudies.Source
 
                 var kb = game.KeyboardState;
                 camera.ProcessKeyboard(kb, (float)e.Time);
-                cubeLight.ProcessKeyboard(kb, (float)e.Time);
+                cubeLight1.ProcessKeyboard(kb, (float)e.Time);
 
             };
 
@@ -60,7 +69,7 @@ namespace GameStudies.Source
 
             game.MouseWheel += e =>
             {
-                camera.ProcessMouseScroll(e.Offset);
+                cubeLight1.ProcessMouseScroll(e.Offset);
             };
 
             game.RenderFrame += args =>
@@ -85,10 +94,12 @@ namespace GameStudies.Source
 
                 lightCubeShader.SetVec3("viewPos", camera.Position);
 
-                cubeLight.Draw(dt);
+                cubeLight1.Draw(dt);
 
-                cube1.Draw();
-                cube2.Draw();
+                for (int i = 0; i < quantityCubes; i++)
+                {
+                    cubes[i].Draw();
+                }
 
 
                 game.SwapBuffers();
@@ -96,9 +107,12 @@ namespace GameStudies.Source
 
             game.Unload += () =>
             {
-                cubeLight.Dispose();
-                cube1.Dispose();
-                cube2.Dispose();
+                cubeLight1.Dispose();
+
+                for (int i = 0; i < quantityCubes; i++)
+                {
+                    cubes[i].Dispose();
+                }
             };
 
             game.Run();
