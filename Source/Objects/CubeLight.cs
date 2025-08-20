@@ -10,9 +10,9 @@ namespace GameStudies.Objects
 
         private int _vao, _vbo;
         public Vector3 Position = new(0.0f, 0.0f, 0.0f);
-        public Vector3 Color { get; set; } = new(1f);
-        public Vector3 AmbientColor = new(0.2f);
-        public Vector3 DiffuseColor = new(1.0f);
+        public Vector3 Color { get; set; } = new(0.5f, 0, 0);
+        public Vector3 AmbientColor = new(0.4f);
+        public Vector3 DiffuseColor = new(1.0f, 0, 0);
         public float Scale { get; set; } = 0.2f;
         public float Speed { get; set; } = 1.5f;
 
@@ -26,35 +26,30 @@ namespace GameStudies.Objects
                  0.5f,  0.5f, -0.5f,  0.0f, 0.0f, -1.0f,  1.0f, 1.0f, 1.0f,
                 -0.5f,  0.5f, -0.5f,  0.0f, 0.0f, -1.0f,  1.0f, 1.0f, 1.0f,
                 -0.5f, -0.5f, -0.5f,  0.0f, 0.0f, -1.0f,  1.0f, 1.0f, 1.0f,
-
-                -0.5f, -0.5f,  0.5f,  0.0f, 0.0f, 1.0f,   1.0f, 1.0f, 1.0f,
-                 0.5f, -0.5f,  0.5f,  0.0f, 0.0f, 1.0f,   1.0f, 1.0f, 1.0f,
-                 0.5f,  0.5f,  0.5f,  0.0f, 0.0f, 1.0f,   1.0f, 1.0f, 1.0f,
-                 0.5f,  0.5f,  0.5f,  0.0f, 0.0f, 1.0f,   1.0f, 1.0f, 1.0f,
-                -0.5f,  0.5f,  0.5f,  0.0f, 0.0f, 1.0f,   1.0f, 1.0f, 1.0f,
-                -0.5f, -0.5f,  0.5f,  0.0f, 0.0f, 1.0f,   1.0f, 1.0f, 1.0f,
-
+                -0.5f, -0.5f,  0.5f,   0.0f, 0.0f, 1.0f,  1.0f, 1.0f, 1.0f,
+                 0.5f, -0.5f,  0.5f,   0.0f, 0.0f, 1.0f,  1.0f, 1.0f, 1.0f,
+                 0.5f,  0.5f,  0.5f,   0.0f, 0.0f, 1.0f,  1.0f, 1.0f, 1.0f,
+                 0.5f,  0.5f,  0.5f,   0.0f, 0.0f, 1.0f,  1.0f, 1.0f, 1.0f,
+                -0.5f,  0.5f,  0.5f,   0.0f, 0.0f, 1.0f,  1.0f, 1.0f, 1.0f,
+                -0.5f, -0.5f,  0.5f,   0.0f, 0.0f, 1.0f,  1.0f, 1.0f, 1.0f,
                 -0.5f,  0.5f,  0.5f, -1.0f,  0.0f, 0.0f,  1.0f, 1.0f, 1.0f,
                 -0.5f,  0.5f, -0.5f, -1.0f,  0.0f, 0.0f,  1.0f, 1.0f, 1.0f,
                 -0.5f, -0.5f, -0.5f, -1.0f,  0.0f, 0.0f,  1.0f, 1.0f, 1.0f,
                 -0.5f, -0.5f, -0.5f, -1.0f,  0.0f, 0.0f,  1.0f, 1.0f, 1.0f,
                 -0.5f, -0.5f,  0.5f, -1.0f,  0.0f, 0.0f,  1.0f, 1.0f, 1.0f,
                 -0.5f,  0.5f,  0.5f, -1.0f,  0.0f, 0.0f,  1.0f, 1.0f, 1.0f,
-
-                0.5f,  0.5f,  0.5f,  1.0f,  0.0f,  0.0f,  1.0f, 1.0f, 1.0f,
-                0.5f,  0.5f, -0.5f,  1.0f,  0.0f,  0.0f,  1.0f, 1.0f, 1.0f,
-                0.5f, -0.5f, -0.5f,  1.0f,  0.0f,  0.0f,  1.0f, 1.0f, 1.0f,
-                0.5f, -0.5f, -0.5f,  1.0f,  0.0f,  0.0f,  1.0f, 1.0f, 1.0f,
-                0.5f, -0.5f,  0.5f,  1.0f,  0.0f,  0.0f,  1.0f, 1.0f, 1.0f,
-                0.5f,  0.5f,  0.5f,  1.0f,  0.0f,  0.0f,  1.0f, 1.0f, 1.0f,
-
+                 0.5f,  0.5f,  0.5f,  1.0f,  0.0f, 0.0f,  1.0f, 1.0f, 1.0f,
+                 0.5f,  0.5f, -0.5f,  1.0f,  0.0f, 0.0f,  1.0f, 1.0f, 1.0f,
+                 0.5f, -0.5f, -0.5f,  1.0f,  0.0f, 0.0f,  1.0f, 1.0f, 1.0f,
+                 0.5f, -0.5f, -0.5f,  1.0f,  0.0f, 0.0f,  1.0f, 1.0f, 1.0f,
+                 0.5f, -0.5f,  0.5f,  1.0f,  0.0f, 0.0f,  1.0f, 1.0f, 1.0f,
+                 0.5f,  0.5f,  0.5f,  1.0f,  0.0f, 0.0f,  1.0f, 1.0f, 1.0f,
                 -0.5f, -0.5f, -0.5f,  0.0f, -1.0f, 0.0f,  1.0f, 1.0f, 1.0f,
                  0.5f, -0.5f, -0.5f,  0.0f, -1.0f, 0.0f,  1.0f, 1.0f, 1.0f,
                  0.5f, -0.5f,  0.5f,  0.0f, -1.0f, 0.0f,  1.0f, 1.0f, 1.0f,
                  0.5f, -0.5f,  0.5f,  0.0f, -1.0f, 0.0f,  1.0f, 1.0f, 1.0f,
                 -0.5f, -0.5f,  0.5f,  0.0f, -1.0f, 0.0f,  1.0f, 1.0f, 1.0f,
                 -0.5f, -0.5f, -0.5f,  0.0f, -1.0f, 0.0f,  1.0f, 1.0f, 1.0f,
-
                 -0.5f,  0.5f, -0.5f,  0.0f,  1.0f, 0.0f,  1.0f, 1.0f, 1.0f,
                  0.5f,  0.5f, -0.5f,  0.0f,  1.0f, 0.0f,  1.0f, 1.0f, 1.0f,
                  0.5f,  0.5f,  0.5f,  0.0f,  1.0f, 0.0f,  1.0f, 1.0f, 1.0f,
@@ -93,6 +88,7 @@ namespace GameStudies.Objects
             GL.VertexAttribPointer(2, 3, VertexAttribPointerType.Float, false, 9 * sizeof(float), 6 * sizeof(float));
             GL.EnableVertexAttribArray(2);
 
+
             GL.EnableVertexAttribArray(0);
         }
 
@@ -106,22 +102,20 @@ namespace GameStudies.Objects
 
 
             _shader.SetMat4("model", model);
-            // _shader.SetVec3("aColor", Color);
+            _shader.SetVec3("aColor", Color);
 
             _shader.SetInt("material.diffuse", 0);
             _shader.SetInt("material.specular", 1);
 
 
-            Vector3 diffuseColor = Color * DiffuseColor;
-            Vector3 ambientColor = Color * AmbientColor;
-
             _shader.SetVec3("light.direction", new(0.2f, 1.0f, 0.3f));
             _shader.SetVec3("light.position", Position);
-            _shader.SetVec3("light.ambient", ambientColor);
+            _shader.SetVec3("light.ambient", AmbientColor);
             _shader.SetFloat("light.cutOff", MathF.Cos(Radians(12.5f)));
+            _shader.SetFloat("light.outerCutOff", MathF.Cos(Radians(17.5f)));
 
-            _shader.SetVec3("light.diffuse", diffuseColor);
-            _shader.SetVec3("light.specular", new(1.0f, 1.0f, 1.0f));
+            _shader.SetVec3("light.diffuse", DiffuseColor);
+            _shader.SetVec3("light.specular", new(0, 1.0f, 0));
 
 
             _shader.SetFloat("light.constant", 1.0f);

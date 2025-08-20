@@ -25,7 +25,7 @@ namespace GameStudies.Source
             const string lightFrag = "C:/Users/Jeffe/OneDrive/Documents/Projects/GameStudies/shaders/light.frag";
 
             var shader = new Shader(vert, frag);
-            var lightCubeShader = new Shader(lightVert, lightFrag);
+            var lightShader = new Shader(lightVert, lightFrag);
 
             var camera = new Camera();
 
@@ -34,11 +34,11 @@ namespace GameStudies.Source
 
             for (int i = 0; i < quantityCubes; i++)
             {
-                cubes.Add(new CubeObject(lightCubeShader, Helpers.GenRandomPosition()));
+                cubes.Add(new CubeObject(lightShader, Helpers.GenRandomPosition()));
                 cubes[i].Rotation = Helpers.GenRandomRotation();
             }
 
-            CubeLight cubeLight1 = new(lightCubeShader);
+            CubeLight cubeLight1 = new(lightShader);
 
             game.Load += () =>
             {
@@ -88,11 +88,11 @@ namespace GameStudies.Source
                 shader.SetMat4("projection", proj);
 
 
-                lightCubeShader.Use();
-                lightCubeShader.SetMat4("view", view);
-                lightCubeShader.SetMat4("projection", proj);
+                lightShader.Use();
+                lightShader.SetMat4("view", view);
+                lightShader.SetMat4("projection", proj);
 
-                lightCubeShader.SetVec3("viewPos", camera.Position);
+                lightShader.SetVec3("viewPos", camera.Position);
 
                 cubeLight1.Draw(dt);
 
