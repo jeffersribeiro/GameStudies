@@ -1,5 +1,6 @@
 ﻿
 using GameStudies.Objects;
+using GameStudies.Source.Objects;
 using OpenTK.Graphics.OpenGL;
 using OpenTK.Mathematics;
 using OpenTK.Windowing.Desktop;
@@ -38,14 +39,38 @@ namespace GameStudies.Source
                 cubes[i].Rotation = Helpers.GenRandomRotation();
             }
 
-            CubeLight cubeLight1 = new(lightShader);
+            CubeObject cubeLight1 = new(lightShader, Helpers.GenRandomPosition());
+            CubeObject cubeLight2 = new(lightShader, Helpers.GenRandomPosition());
+            CubeObject cubeLight3 = new(lightShader, Helpers.GenRandomPosition());
+
+            cubeLight1.Scale = new(0.3f);
+            cubeLight2.Scale = new(0.3f);
+            cubeLight3.Scale = new(0.2f);
+
+
+            Light light1 = new();
+            Light light2 = new();
+            Light light3 = new();
+
+            light1.Type = LightType.Point;
+            light2.Type = LightType.Spot;
+            light3.Type = LightType.Directionl;
+
+            light1.Diffuse = new(1.0f, 0.0f, 0.0f);
+            light2.Diffuse = new(0.0f, 1.0f, 0.0f);
+
+
+            light3.Direction = new Vector3(0f, 0f, -1f);
+            light3.Ambient = new Vector3(0.2f, 0.2f, 0.2f);
+            light3.Diffuse = new Vector3(0.5f, 0.5f, 0.5f);
+            light3.Specular = new Vector3(1f, 1f, 1f);
+
 
             game.Load += () =>
             {
                 game.WindowState = OpenTK.Windowing.Common.WindowState.Maximized;
 
                 GL.Enable(EnableCap.DepthTest);
-                cubeLight1.Load();
             };
 
             game.UpdateFrame += e =>
@@ -54,7 +79,8 @@ namespace GameStudies.Source
 
                 var kb = game.KeyboardState;
                 camera.ProcessKeyboard(kb, (float)e.Time);
-                cubeLight1.ProcessKeyboard(kb, (float)e.Time);
+
+                cubeLight3.ProcessKeyboard(kb, (float)e.Time);
 
             };
 
@@ -67,16 +93,11 @@ namespace GameStudies.Source
                 }
             };
 
-            game.MouseWheel += e =>
-            {
-                cubeLight1.ProcessMouseScroll(e.Offset);
-            };
-
             game.RenderFrame += args =>
             {
                 var dt = (float)args.Time;
 
-                GL.ClearColor(0.09f, 0.09f, 0.09f, 0f);
+                GL.ClearColor(0.07f, 0.07f, 0.07f, 0f);
                 GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
 
                 var view = camera.ViewMatrix;
@@ -87,14 +108,11 @@ namespace GameStudies.Source
                 shader.SetMat4("view", view);
                 shader.SetMat4("projection", proj);
 
-
                 lightShader.Use();
                 lightShader.SetMat4("view", view);
                 lightShader.SetMat4("projection", proj);
 
                 lightShader.SetVec3("viewPos", camera.Position);
-
-                cubeLight1.Draw(dt);
 
                 for (int i = 0; i < quantityCubes; i++)
                 {
@@ -102,17 +120,31 @@ namespace GameStudies.Source
                 }
 
 
+                light1.Position = new(cubeLight1.Position);
+                light2.Position = new(cubeLight2.Position);
+                light3.Position = new(cubeLight3.Position);
+
+                light1.Apply(lightShader, 1);
+                light2.Apply(lightShader, 2);
+                light3.Apply(lightShader, 3);
+
+                cubeLight1.Draw();
+                cubeLight2.Draw();
+                cubeLight3.Draw();
+
                 game.SwapBuffers();
             };
 
             game.Unload += () =>
             {
-                cubeLight1.Dispose();
-
                 for (int i = 0; i < quantityCubes; i++)
                 {
                     cubes[i].Dispose();
                 }
+
+                cubeLight1.Dispose();
+                cubeLight2.Dispose();
+                cubeLight3.Dispose();
             };
 
             game.Run();

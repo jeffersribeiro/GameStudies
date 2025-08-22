@@ -117,6 +117,10 @@ namespace GameStudies.Source
                 // _shader.SetVec4("uColor", new(0.2f, 0.8f, 0.3f, 1.0f));
             }
 
+            _shader.SetInt("material.diffuse", 0);
+            _shader.SetInt("material.specular", 1);
+            _shader.SetFloat("material.shininess", 16.0f);
+
         }
 
         public void Draw()

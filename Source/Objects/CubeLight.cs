@@ -10,9 +10,9 @@ namespace GameStudies.Objects
 
         private int _vao, _vbo;
         public Vector3 Position = new(0.0f, 0.0f, 0.0f);
-        public Vector3 Color { get; set; } = new(0.5f, 0, 0);
-        public Vector3 AmbientColor = new(0.4f);
-        public Vector3 DiffuseColor = new(1.0f, 0, 0);
+        public Vector3 Color { get; set; } = new(1.0f, 1.0f, 1.0f);
+        public Vector3 AmbientColor = new(1.0f);
+        public Vector3 DiffuseColor = new(1.0f, 0.0f, 0.0f);
         public float Scale { get; set; } = 0.2f;
         public float Speed { get; set; } = 1.5f;
 
@@ -108,21 +108,21 @@ namespace GameStudies.Objects
             _shader.SetInt("material.specular", 1);
 
 
-            _shader.SetVec3("light.direction", new(0.2f, 1.0f, 0.3f));
-            _shader.SetVec3("light.position", Position);
-            _shader.SetVec3("light.ambient", AmbientColor);
-            _shader.SetFloat("light.cutOff", MathF.Cos(Radians(12.5f)));
-            _shader.SetFloat("light.outerCutOff", MathF.Cos(Radians(17.5f)));
+            _shader.SetVec3("pointLights[0].direction", new(0.2f, 1.0f, 0.3f));
+            _shader.SetVec3("pointLights[0].position", Position);
+            _shader.SetVec3("pointLights[0].ambient", AmbientColor);
+            _shader.SetFloat("pointLights[0].cutOff", MathF.Cos(Radians(12.5f)));
+            _shader.SetFloat("pointLights[0].outerCutOff", MathF.Cos(Radians(17.5f)));
 
-            _shader.SetVec3("light.diffuse", DiffuseColor);
-            _shader.SetVec3("light.specular", new(0, 1.0f, 0));
+            _shader.SetVec3("pointLights[0].diffuse", DiffuseColor);
+            _shader.SetVec3("pointLights[0].specular", new(1.0f, 0, 0));
 
 
-            _shader.SetFloat("light.constant", 1.0f);
-            _shader.SetFloat("light.linear", 0.09f);
-            _shader.SetFloat("light.quadratic", 0.032f);
+            _shader.SetFloat("pointLights[0].constant", 1.0f);
+            _shader.SetFloat("pointLights[0].linear", 1.0f);
+            _shader.SetFloat("pointLights[0].quadratic", 1.0f);
 
-            _shader.SetFloat("material.shininess", 64.0f);
+            _shader.SetFloat("material.shininess", 16.0f);
 
             GL.BindVertexArray(_vao);
             GL.DrawArrays(PrimitiveType.Triangles, 0, 36);
