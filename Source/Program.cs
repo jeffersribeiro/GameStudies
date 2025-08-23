@@ -30,7 +30,7 @@ namespace GameStudies.Source
 
             var camera = new Camera();
 
-            int quantityCubes = 10;
+            int quantityCubes = 20;
             List<CubeObject> cubes = [];
 
             for (int i = 0; i < quantityCubes; i++)
@@ -58,12 +58,12 @@ namespace GameStudies.Source
 
             light1.Diffuse = new(1.0f, 0.0f, 0.0f);
             light2.Diffuse = new(0.0f, 1.0f, 0.0f);
+            light3.Diffuse = new(0.0f, 0.0f, 1.0f);
 
 
-            light3.Direction = new Vector3(0f, 0f, -1f);
-            light3.Ambient = new Vector3(0.2f, 0.2f, 0.2f);
-            light3.Diffuse = new Vector3(0.5f, 0.5f, 0.5f);
-            light3.Specular = new Vector3(1f, 1f, 1f);
+            // light3.Ambient = new Vector3(0.2f, 0.2f, 0.2f);
+            // light3.Diffuse = new Vector3(0.5f, 0.5f, 0.5f);
+            // light3.Specular = new Vector3(1f, 1f, 1f);
 
 
             game.Load += () =>
@@ -80,7 +80,7 @@ namespace GameStudies.Source
                 var kb = game.KeyboardState;
                 camera.ProcessKeyboard(kb, (float)e.Time);
 
-                cubeLight3.ProcessKeyboard(kb, (float)e.Time);
+                cubeLight1.ProcessKeyboard(kb, (float)e.Time);
 
             };
 

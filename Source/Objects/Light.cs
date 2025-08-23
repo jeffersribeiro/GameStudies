@@ -11,9 +11,9 @@ namespace GameStudies.Source.Objects
         public Vector3 Position { get; set; } = new(0, 0, 1);
         public Vector3 Direction { get; set; } = new(0, -1, 0);
 
-        public Vector3 Ambient { get; set; } = new(0.1f, 0.1f, 0.1f);
-        public Vector3 Diffuse { get; set; } = new(1f, 1f, 1f);
-        public Vector3 Specular { get; set; } = new(1f, 1f, 1f);
+        public Vector3 Ambient { get; set; } = new(0, 0, 0);
+        public Vector3 Diffuse { get; set; } = new(0, 0, 0);
+        public Vector3 Specular { get; set; } = new(0, 0, 0);
 
         // attenuation (for Point/Spot)
         public float Constant { get; set; } = 1.0f;
@@ -32,10 +32,10 @@ namespace GameStudies.Source.Objects
             switch (Type)
             {
                 case LightType.Directionl:
-                    shader.SetVec3($"dirLight[{i}].directional", Direction);
-                    shader.SetVec3($"dirLight[{i}].ambient", Ambient);
-                    shader.SetVec3($"dirLight[{i}].diffuse", Diffuse);
-                    shader.SetVec3($"dirLight[{i}].specular", Specular);
+                    shader.SetVec3($"dirLight.direction", Direction);
+                    shader.SetVec3($"dirLight.ambient", Ambient);
+                    shader.SetVec3($"dirLight.diffuse", Diffuse);
+                    shader.SetVec3($"dirLight.specular", Specular);
                     break;
                 case LightType.Point:
                     shader.SetVec3($"pointLights[{i}].position", Position);
@@ -47,12 +47,16 @@ namespace GameStudies.Source.Objects
                     shader.SetVec3($"pointLights[{i}].specular", Specular);
                     break;
                 case LightType.Spot:
-                    shader.SetVec3($"spotLight[{i}].position", Position);
-                    shader.SetVec3($"spotLight[{i}].direction", Direction);
-                    shader.SetVec3($"spotLight[{i}].diffuse", Diffuse);
-                    shader.SetVec3($"spotLight[{i}].specular", Specular);
-                    shader.SetFloat($"spotLight[{i}].cutOff", CutoffCos);
-                    shader.SetFloat($"spotLight[{i}].outerCutOff", OuterCutoffCos);
+                    shader.SetVec3($"spotLight.position", Position);
+                    shader.SetVec3($"spotLight.direction", Direction);
+                    shader.SetFloat($"spotLight.cutOff", CutoffCos);
+                    shader.SetFloat($"spotLight.outerCutOff", OuterCutoffCos);
+                    shader.SetFloat($"spotLight.constant", Constant);
+                    shader.SetFloat($"spotLight.linear", Linear);
+                    shader.SetFloat($"spotLight.quadratic", Quadratic);
+                    shader.SetVec3($"spotLight.specular", Specular);
+                    shader.SetVec3($"spotLight.ambient", Ambient);
+                    shader.SetVec3($"spotLight.diffuse", Diffuse);
                     break;
             }
         }
