@@ -1,5 +1,9 @@
 #version 330 core
 
+#define NR_POINT_LIGHTS 4
+#define NR_TEXTURES_DIFFUSE 3
+#define NR_TEXTURES_SPECULAR 2
+
 struct Material {
     sampler2D diffuse;
     sampler2D specular;
@@ -50,10 +54,11 @@ out vec4 FragColor;
 
 uniform vec3 viewPos;
 uniform DirLight dirLight;
-#define NR_POINT_LIGHTS 4
 uniform PointLight pointLights[NR_POINT_LIGHTS];
 uniform SpotLight spotLight;
 uniform Material material;
+uniform sampler2D texture_diffuse[NR_TEXTURES_DIFFUSE];
+uniform sampler2D texture_specular[NR_TEXTURES_SPECULAR];
 
 vec3 CalcDirLight(DirLight light, vec3 normal, vec3 viewDir) {
     vec3 lightDir = normalize(-light.direction);

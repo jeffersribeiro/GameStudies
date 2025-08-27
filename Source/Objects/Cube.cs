@@ -5,6 +5,7 @@ using OpenTK.Windowing.GraphicsLibraryFramework;
 
 namespace GameStudies.Objects
 {
+
     public class CubeObject
     {
         public Mesh Mesh { get; }
@@ -19,11 +20,22 @@ namespace GameStudies.Objects
         {
             _shader = shader;
             Position = startPosition;
-            var vertices = CubeFactory.CreateVertices();
+            Vertex[] vertices = CubeFactory.CreateVertices();
 
-            string[] texPaths = [
-                "C:/Users/Jeffe/OneDrive/Documents/Projects/GameStudies/assets/wood_container_texture.png",
-                "C:/Users/Jeffe/OneDrive/Documents/Projects/GameStudies/assets/container_steel_border.png",
+            Texture[] texPaths =
+            [
+                new()
+                {
+                    id= 1,
+                    type= TextureType.Diffuse,
+                    path= "C:/Users/Jeffe/OneDrive/Documents/Projects/GameStudies/assets/wood_container_texture.png"
+                },
+                new ()
+                {
+                    id= 1,
+                    type= TextureType.Specular,
+                    path= "C:/Users/Jeffe/OneDrive/Documents/Projects/GameStudies/assets/container_steel_border.png"
+                },
             ];
 
             Mesh = new Mesh(_shader, vertices, texPaths);

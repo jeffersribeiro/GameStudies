@@ -1,49 +1,52 @@
+using System.Numerics;
+using GameStudies.Source;
+
 namespace GameStudies.Factory
 {
     public static class CubeFactory
     {
-        public static float[] CreateVertices()
+        public static Vertex[] CreateVertices()
         {
-            float[] vertices = {
-                //     POSITIONS           NORMALS                COLORS         TEX COORDS
-                // X      Y      Z       NX     NY    NZ     R     G     B     U     V
-                 -0.5f, -0.5f, -0.5f,  0.0f, 0.0f, -1.0f,  0.08f, 0.93f, 0.93f,  0.0f, 0.0f,
-                  0.5f, -0.5f, -0.5f,  0.0f, 0.0f, -1.0f,  0.08f, 0.93f, 0.93f,  1.0f, 0.0f,
-                  0.5f,  0.5f, -0.5f,  0.0f, 0.0f, -1.0f,  0.08f, 0.93f, 0.93f,  1.0f, 1.0f,
-                  0.5f,  0.5f, -0.5f,  0.0f, 0.0f, -1.0f,  0.08f, 0.93f, 0.93f,  1.0f, 1.0f,
-                 -0.5f,  0.5f, -0.5f,  0.0f, 0.0f, -1.0f,  0.08f, 0.93f, 0.93f,  0.0f, 1.0f,
-                 -0.5f, -0.5f, -0.5f,  0.0f, 0.0f, -1.0f,  0.08f, 0.93f, 0.93f,  0.0f, 0.0f,
-                 -0.5f, -0.5f,  0.5f,  0.0f, 0.0f,  1.0f,  0.08f, 0.93f, 0.93f,  0.0f, 0.0f,
-                  0.5f, -0.5f,  0.5f,  0.0f, 0.0f,  1.0f,  0.08f, 0.93f, 0.93f,  1.0f, 0.0f,
-                  0.5f,  0.5f,  0.5f,  0.0f, 0.0f,  1.0f,  0.08f, 0.93f, 0.93f,  1.0f, 1.0f,
-                  0.5f,  0.5f,  0.5f,  0.0f, 0.0f,  1.0f,  0.08f, 0.93f, 0.93f,  1.0f, 1.0f,
-                 -0.5f,  0.5f,  0.5f,  0.0f, 0.0f,  1.0f,  0.08f, 0.93f, 0.93f,  0.0f, 1.0f,
-                 -0.5f, -0.5f,  0.5f,  0.0f, 0.0f,  1.0f,  0.08f, 0.93f, 0.93f,  0.0f, 0.0f,
-                 -0.5f,  0.5f,  0.5f, -1.0f, 0.0f,  0.0f,  0.08f, 0.93f, 0.93f,  1.0f, 0.0f,
-                 -0.5f,  0.5f, -0.5f, -1.0f, 0.0f,  0.0f,  0.08f, 0.93f, 0.93f,  1.0f, 1.0f,
-                 -0.5f, -0.5f, -0.5f, -1.0f, 0.0f,  0.0f,  0.08f, 0.93f, 0.93f,  0.0f, 1.0f,
-                 -0.5f, -0.5f, -0.5f, -1.0f, 0.0f,  0.0f,  0.08f, 0.93f, 0.93f,  0.0f, 1.0f,
-                 -0.5f, -0.5f,  0.5f, -1.0f, 0.0f,  0.0f,  0.08f, 0.93f, 0.93f,  0.0f, 0.0f,
-                 -0.5f,  0.5f,  0.5f, -1.0f, 0.0f,  0.0f,  0.08f, 0.93f, 0.93f,  1.0f, 0.0f,
-                  0.5f,  0.5f,  0.5f,  1.0f, 0.0f,  0.0f,  0.08f, 0.93f, 0.93f,  1.0f, 0.0f,
-                  0.5f,  0.5f, -0.5f,  1.0f, 0.0f,  0.0f,  0.08f, 0.93f, 0.93f,  1.0f, 1.0f,
-                  0.5f, -0.5f, -0.5f,  1.0f, 0.0f,  0.0f,  0.08f, 0.93f, 0.93f,  0.0f, 1.0f,
-                  0.5f, -0.5f, -0.5f,  1.0f, 0.0f,  0.0f,  0.08f, 0.93f, 0.93f,  0.0f, 1.0f,
-                  0.5f, -0.5f,  0.5f,  1.0f, 0.0f,  0.0f,  0.08f, 0.93f, 0.93f,  0.0f, 0.0f,
-                  0.5f,  0.5f,  0.5f,  1.0f, 0.0f,  0.0f,  0.08f, 0.93f, 0.93f,  1.0f, 0.0f,
-                 -0.5f, -0.5f, -0.5f,  0.0f, 1.0f,  0.0f,  0.08f, 0.93f, 0.93f,  0.0f, 1.0f,
-                  0.5f, -0.5f, -0.5f,  0.0f, 1.0f,  0.0f,  0.08f, 0.93f, 0.93f,  1.0f, 1.0f,
-                  0.5f, -0.5f,  0.5f,  0.0f, 1.0f,  0.0f,  0.08f, 0.93f, 0.93f,  1.0f, 0.0f,
-                  0.5f, -0.5f,  0.5f,  0.0f, 1.0f,  0.0f,  0.08f, 0.93f, 0.93f,  1.0f, 0.0f,
-                 -0.5f, -0.5f,  0.5f,  0.0f, 1.0f,  0.0f,  0.08f, 0.93f, 0.93f,  0.0f, 0.0f,
-                 -0.5f, -0.5f, -0.5f,  0.0f, 1.0f,  0.0f,  0.08f, 0.93f, 0.93f,  0.0f, 1.0f,
-                 -0.5f,  0.5f, -0.5f,  0.0f, 1.0f,  0.0f,  0.08f, 0.93f, 0.93f,  0.0f, 1.0f,
-                  0.5f,  0.5f, -0.5f,  0.0f, 1.0f,  0.0f,  0.08f, 0.93f, 0.93f,  1.0f, 1.0f,
-                  0.5f,  0.5f,  0.5f,  0.0f, 1.0f,  0.0f,  0.08f, 0.93f, 0.93f,  1.0f, 0.0f,
-                  0.5f,  0.5f,  0.5f,  0.0f, 1.0f,  0.0f,  0.08f, 0.93f, 0.93f,  1.0f, 0.0f,
-                 -0.5f,  0.5f,  0.5f,  0.0f, 1.0f,  0.0f,  0.08f, 0.93f, 0.93f,  0.0f, 0.0f,
-                 -0.5f,  0.5f, -0.5f,  0.0f, 1.0f,  0.0f,  0.08f, 0.93f, 0.93f,  0.0f, 1.0f
-            };
+            Vertex[] vertices =
+            [
+
+                new() { Position= new(-0.5f, -0.5f, -0.5f), Normal= new(0.0f, 0.0f, -1.0f),Color=  new( 0.08f, 0.93f, 0.93f), vUV= new(0.0f, 0.0f)},
+                new() { Position= new( 0.5f, -0.5f, -0.5f), Normal= new(0.0f, 0.0f, -1.0f),Color=  new( 0.08f, 0.93f, 0.93f), vUV= new(1.0f, 0.0f)},
+                new() { Position= new( 0.5f,  0.5f, -0.5f), Normal= new(0.0f, 0.0f, -1.0f),Color=  new( 0.08f, 0.93f, 0.93f), vUV= new(1.0f, 1.0f)},
+                new() { Position= new( 0.5f,  0.5f, -0.5f), Normal= new(0.0f, 0.0f, -1.0f),Color=  new( 0.08f, 0.93f, 0.93f), vUV= new(1.0f, 1.0f)},
+                new() { Position= new(-0.5f,  0.5f, -0.5f), Normal= new(0.0f, 0.0f, -1.0f),Color=  new( 0.08f, 0.93f, 0.93f), vUV= new(0.0f, 1.0f)},
+                new() { Position= new(-0.5f, -0.5f, -0.5f), Normal= new(0.0f, 0.0f, -1.0f),Color=  new( 0.08f, 0.93f, 0.93f), vUV= new(0.0f, 0.0f)},
+                new() { Position= new(-0.5f, -0.5f,  0.5f), Normal= new(0.0f, 0.0f,  1.0f),Color=  new( 0.08f, 0.93f, 0.93f), vUV= new(0.0f, 0.0f)},
+                new() { Position= new( 0.5f, -0.5f,  0.5f), Normal= new(0.0f, 0.0f,  1.0f),Color=  new( 0.08f, 0.93f, 0.93f), vUV= new(1.0f, 0.0f)},
+                new() { Position= new( 0.5f,  0.5f,  0.5f), Normal= new(0.0f, 0.0f,  1.0f),Color=  new( 0.08f, 0.93f, 0.93f), vUV= new(1.0f, 1.0f)},
+                new() { Position= new( 0.5f,  0.5f,  0.5f), Normal= new(0.0f, 0.0f,  1.0f),Color=  new( 0.08f, 0.93f, 0.93f), vUV= new(1.0f, 1.0f)},
+                new() { Position= new(-0.5f,  0.5f,  0.5f), Normal= new(0.0f, 0.0f,  1.0f),Color=  new( 0.08f, 0.93f, 0.93f), vUV= new(0.0f, 1.0f)},
+                new() { Position= new(-0.5f, -0.5f,  0.5f), Normal= new(0.0f, 0.0f,  1.0f),Color=  new( 0.08f, 0.93f, 0.93f), vUV= new(0.0f, 0.0f)},
+                new() { Position= new(-0.5f,  0.5f,  0.5f), Normal= new(1.0f, 0.0f,  0.0f),Color=  new( 0.08f, 0.93f, 0.93f), vUV= new(1.0f, 0.0f)},
+                new() { Position= new(-0.5f,  0.5f, -0.5f), Normal= new(1.0f, 0.0f,  0.0f),Color=  new( 0.08f, 0.93f, 0.93f), vUV= new(1.0f, 1.0f)},
+                new() { Position= new(-0.5f, -0.5f, -0.5f), Normal= new(1.0f, 0.0f,  0.0f),Color=  new( 0.08f, 0.93f, 0.93f), vUV= new(0.0f, 1.0f)},
+                new() { Position= new(-0.5f, -0.5f, -0.5f), Normal= new(1.0f, 0.0f,  0.0f),Color=  new( 0.08f, 0.93f, 0.93f), vUV= new(0.0f, 1.0f)},
+                new() { Position= new(-0.5f, -0.5f,  0.5f), Normal= new(1.0f, 0.0f,  0.0f),Color=  new( 0.08f, 0.93f, 0.93f), vUV= new(0.0f, 0.0f)},
+                new() { Position= new(-0.5f,  0.5f,  0.5f), Normal= new(1.0f, 0.0f,  0.0f),Color=  new( 0.08f, 0.93f, 0.93f), vUV= new(1.0f, 0.0f)},
+                new() { Position= new( 0.5f,  0.5f,  0.5f), Normal= new(1.0f, 0.0f,  0.0f),Color=  new( 0.08f, 0.93f, 0.93f), vUV= new(1.0f, 0.0f)},
+                new() { Position= new( 0.5f,  0.5f, -0.5f), Normal= new(1.0f, 0.0f,  0.0f),Color=  new( 0.08f, 0.93f, 0.93f), vUV= new(1.0f, 1.0f)},
+                new() { Position= new( 0.5f, -0.5f, -0.5f), Normal= new(1.0f, 0.0f,  0.0f),Color=  new( 0.08f, 0.93f, 0.93f), vUV= new(0.0f, 1.0f)},
+                new() { Position= new( 0.5f, -0.5f, -0.5f), Normal= new(1.0f, 0.0f,  0.0f),Color=  new( 0.08f, 0.93f, 0.93f), vUV= new(0.0f, 1.0f)},
+                new() { Position= new( 0.5f, -0.5f,  0.5f), Normal= new(1.0f, 0.0f,  0.0f),Color=  new( 0.08f, 0.93f, 0.93f), vUV= new(0.0f, 0.0f)},
+                new() { Position= new( 0.5f,  0.5f,  0.5f), Normal= new(1.0f, 0.0f,  0.0f),Color=  new( 0.08f, 0.93f, 0.93f), vUV= new(1.0f, 0.0f)},
+                new() { Position= new(-0.5f, -0.5f, -0.5f), Normal= new(0.0f, 1.0f,  0.0f),Color=  new( 0.08f, 0.93f, 0.93f), vUV= new(0.0f, 1.0f)},
+                new() { Position= new( 0.5f, -0.5f, -0.5f), Normal= new(0.0f, 1.0f,  0.0f),Color=  new( 0.08f, 0.93f, 0.93f), vUV= new(1.0f, 1.0f)},
+                new() { Position= new( 0.5f, -0.5f,  0.5f), Normal= new(0.0f, 1.0f,  0.0f),Color=  new( 0.08f, 0.93f, 0.93f), vUV= new(1.0f, 0.0f)},
+                new() { Position= new( 0.5f, -0.5f,  0.5f), Normal= new(0.0f, 1.0f,  0.0f),Color=  new( 0.08f, 0.93f, 0.93f), vUV= new(1.0f, 0.0f)},
+                new() { Position= new(-0.5f, -0.5f,  0.5f), Normal= new(0.0f, 1.0f,  0.0f),Color=  new( 0.08f, 0.93f, 0.93f), vUV= new(0.0f, 0.0f)},
+                new() { Position= new(-0.5f, -0.5f, -0.5f), Normal= new(0.0f, 1.0f,  0.0f),Color=  new( 0.08f, 0.93f, 0.93f), vUV= new(0.0f, 1.0f)},
+                new() { Position= new(-0.5f,  0.5f, -0.5f), Normal= new(0.0f, 1.0f,  0.0f),Color=  new( 0.08f, 0.93f, 0.93f), vUV= new(0.0f, 1.0f)},
+                new() { Position= new( 0.5f,  0.5f, -0.5f), Normal= new(0.0f, 1.0f,  0.0f),Color=  new( 0.08f, 0.93f, 0.93f), vUV= new(1.0f, 1.0f)},
+                new() { Position= new( 0.5f,  0.5f,  0.5f), Normal= new(0.0f, 1.0f,  0.0f),Color=  new( 0.08f, 0.93f, 0.93f), vUV= new(1.0f, 0.0f)},
+                new() { Position= new( 0.5f,  0.5f,  0.5f), Normal= new(0.0f, 1.0f,  0.0f),Color=  new( 0.08f, 0.93f, 0.93f), vUV= new(1.0f, 0.0f)},
+                new() { Position= new(-0.5f,  0.5f,  0.5f), Normal= new(0.0f, 1.0f,  0.0f),Color=  new( 0.08f, 0.93f, 0.93f), vUV= new(0.0f, 0.0f)},
+                new() { Position= new(-0.5f,  0.5f, -0.5f), Normal= new(0.0f, 1.0f,  0.0f),Color=  new( 0.08f, 0.93f, 0.93f), vUV= new(0.0f, 1.0f)}
+            ];
 
             return vertices;
         }
