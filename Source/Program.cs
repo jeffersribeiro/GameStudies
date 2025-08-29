@@ -19,11 +19,11 @@ namespace GameStudies.Source
             };
             using var game = new GameWindow(GameWindowSettings.Default, nativeSettings);
 
-            const string vert = "C:/Users/Jeffe/OneDrive/Documents/Projects/GameStudies/shaders/shader.vert";
-            const string frag = "C:/Users/Jeffe/OneDrive/Documents/Projects/GameStudies/shaders/shader.frag";
+            const string vert = "C:/Users/Jeffe/OneDrive/Documents/Projects/Estudos/GameStudies/shaders/shader.vert";
+            const string frag = "C:/Users/Jeffe/OneDrive/Documents/Projects/Estudos/GameStudies/shaders/shader.frag";
 
-            const string lightVert = "C:/Users/Jeffe/OneDrive/Documents/Projects/GameStudies/shaders/light.vert";
-            const string lightFrag = "C:/Users/Jeffe/OneDrive/Documents/Projects/GameStudies/shaders/light.frag";
+            const string lightVert = "C:/Users/Jeffe/OneDrive/Documents/Projects/Estudos/GameStudies/shaders/light.vert";
+            const string lightFrag = "C:/Users/Jeffe/OneDrive/Documents/Projects/Estudos/GameStudies/shaders/light.frag";
 
             var shader = new Shader(vert, frag);
             var lightShader = new Shader(lightVert, lightFrag);
@@ -31,13 +31,15 @@ namespace GameStudies.Source
             var camera = new Camera();
 
             int quantityCubes = 20;
-            List<CubeObject> cubes = [];
+            // List<CubeObject> cubes = [];
 
-            for (int i = 0; i < quantityCubes; i++)
-            {
-                cubes.Add(new CubeObject(lightShader, Helpers.GenRandomPosition()));
-                cubes[i].Rotation = Helpers.GenRandomRotation();
-            }
+            // for (int i = 0; i < quantityCubes; i++)
+            // {
+            //     cubes.Add(new CubeObject(lightShader, Helpers.GenRandomPosition()));
+            //     cubes[i].Rotation = Helpers.GenRandomRotation();
+            // }
+
+            // Model guitar = new("C:/Users/Jeffe/OneDrive/Documents/Projects/Estudos/GameStudies/assets/backpack/backpack.obj");
 
             CubeObject cubeLight1 = new(lightShader, Helpers.GenRandomPosition());
             CubeObject cubeLight2 = new(lightShader, Helpers.GenRandomPosition());
@@ -114,10 +116,12 @@ namespace GameStudies.Source
 
                 lightShader.SetVec3("viewPos", camera.Position);
 
-                for (int i = 0; i < quantityCubes; i++)
-                {
-                    cubes[i].Draw();
-                }
+                // for (int i = 0; i < quantityCubes; i++)
+                // {
+                //     cubes[i].Draw();
+                // }
+
+                // guitar.Draw(lightShader);
 
 
                 light1.Position = new(cubeLight1.Position);
@@ -137,10 +141,10 @@ namespace GameStudies.Source
 
             game.Unload += () =>
             {
-                for (int i = 0; i < quantityCubes; i++)
-                {
-                    cubes[i].Dispose();
-                }
+                // for (int i = 0; i < quantityCubes; i++)
+                // {
+                //     cubes[i].Dispose();
+                // }
 
                 cubeLight1.Dispose();
                 cubeLight2.Dispose();

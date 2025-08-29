@@ -18,44 +18,43 @@ namespace GameStudies.Objects
 
         static float Radians(float deg) => deg * (MathF.PI / 180f);
 
-
         private static readonly float[] _cubeVerts = {
-                -0.5f, -0.5f, -0.5f,  0.0f, 0.0f, -1.0f,  1.0f, 1.0f, 1.0f,
-                 0.5f, -0.5f, -0.5f,  0.0f, 0.0f, -1.0f,  1.0f, 1.0f, 1.0f,
-                 0.5f,  0.5f, -0.5f,  0.0f, 0.0f, -1.0f,  1.0f, 1.0f, 1.0f,
-                 0.5f,  0.5f, -0.5f,  0.0f, 0.0f, -1.0f,  1.0f, 1.0f, 1.0f,
-                -0.5f,  0.5f, -0.5f,  0.0f, 0.0f, -1.0f,  1.0f, 1.0f, 1.0f,
-                -0.5f, -0.5f, -0.5f,  0.0f, 0.0f, -1.0f,  1.0f, 1.0f, 1.0f,
-                -0.5f, -0.5f,  0.5f,   0.0f, 0.0f, 1.0f,  1.0f, 1.0f, 1.0f,
-                 0.5f, -0.5f,  0.5f,   0.0f, 0.0f, 1.0f,  1.0f, 1.0f, 1.0f,
-                 0.5f,  0.5f,  0.5f,   0.0f, 0.0f, 1.0f,  1.0f, 1.0f, 1.0f,
-                 0.5f,  0.5f,  0.5f,   0.0f, 0.0f, 1.0f,  1.0f, 1.0f, 1.0f,
-                -0.5f,  0.5f,  0.5f,   0.0f, 0.0f, 1.0f,  1.0f, 1.0f, 1.0f,
-                -0.5f, -0.5f,  0.5f,   0.0f, 0.0f, 1.0f,  1.0f, 1.0f, 1.0f,
-                -0.5f,  0.5f,  0.5f, -1.0f,  0.0f, 0.0f,  1.0f, 1.0f, 1.0f,
-                -0.5f,  0.5f, -0.5f, -1.0f,  0.0f, 0.0f,  1.0f, 1.0f, 1.0f,
-                -0.5f, -0.5f, -0.5f, -1.0f,  0.0f, 0.0f,  1.0f, 1.0f, 1.0f,
-                -0.5f, -0.5f, -0.5f, -1.0f,  0.0f, 0.0f,  1.0f, 1.0f, 1.0f,
-                -0.5f, -0.5f,  0.5f, -1.0f,  0.0f, 0.0f,  1.0f, 1.0f, 1.0f,
-                -0.5f,  0.5f,  0.5f, -1.0f,  0.0f, 0.0f,  1.0f, 1.0f, 1.0f,
-                 0.5f,  0.5f,  0.5f,  1.0f,  0.0f, 0.0f,  1.0f, 1.0f, 1.0f,
-                 0.5f,  0.5f, -0.5f,  1.0f,  0.0f, 0.0f,  1.0f, 1.0f, 1.0f,
-                 0.5f, -0.5f, -0.5f,  1.0f,  0.0f, 0.0f,  1.0f, 1.0f, 1.0f,
-                 0.5f, -0.5f, -0.5f,  1.0f,  0.0f, 0.0f,  1.0f, 1.0f, 1.0f,
-                 0.5f, -0.5f,  0.5f,  1.0f,  0.0f, 0.0f,  1.0f, 1.0f, 1.0f,
-                 0.5f,  0.5f,  0.5f,  1.0f,  0.0f, 0.0f,  1.0f, 1.0f, 1.0f,
-                -0.5f, -0.5f, -0.5f,  0.0f, -1.0f, 0.0f,  1.0f, 1.0f, 1.0f,
-                 0.5f, -0.5f, -0.5f,  0.0f, -1.0f, 0.0f,  1.0f, 1.0f, 1.0f,
-                 0.5f, -0.5f,  0.5f,  0.0f, -1.0f, 0.0f,  1.0f, 1.0f, 1.0f,
-                 0.5f, -0.5f,  0.5f,  0.0f, -1.0f, 0.0f,  1.0f, 1.0f, 1.0f,
-                -0.5f, -0.5f,  0.5f,  0.0f, -1.0f, 0.0f,  1.0f, 1.0f, 1.0f,
-                -0.5f, -0.5f, -0.5f,  0.0f, -1.0f, 0.0f,  1.0f, 1.0f, 1.0f,
-                -0.5f,  0.5f, -0.5f,  0.0f,  1.0f, 0.0f,  1.0f, 1.0f, 1.0f,
-                 0.5f,  0.5f, -0.5f,  0.0f,  1.0f, 0.0f,  1.0f, 1.0f, 1.0f,
-                 0.5f,  0.5f,  0.5f,  0.0f,  1.0f, 0.0f,  1.0f, 1.0f, 1.0f,
-                 0.5f,  0.5f,  0.5f,  0.0f,  1.0f, 0.0f,  1.0f, 1.0f, 1.0f,
-                -0.5f,  0.5f,  0.5f,  0.0f,  1.0f, 0.0f,  1.0f, 1.0f, 1.0f,
-                -0.5f,  0.5f, -0.5f,  0.0f,  1.0f, 0.0f,  1.0f, 1.0f, 1.0f,
+                -0.5f, -0.5f, -0.5f,  0.0f,  0.0f, -1.0f,  1.0f, 1.0f, 1.0f,
+                 0.5f, -0.5f, -0.5f,  0.0f,  0.0f, -1.0f,  1.0f, 1.0f, 1.0f,
+                 0.5f,  0.5f, -0.5f,  0.0f,  0.0f, -1.0f,  1.0f, 1.0f, 1.0f,
+                 0.5f,  0.5f, -0.5f,  0.0f,  0.0f, -1.0f,  1.0f, 1.0f, 1.0f,
+                -0.5f,  0.5f, -0.5f,  0.0f,  0.0f, -1.0f,  1.0f, 1.0f, 1.0f,
+                -0.5f, -0.5f, -0.5f,  0.0f,  0.0f, -1.0f,  1.0f, 1.0f, 1.0f,
+                -0.5f, -0.5f,  0.5f,  0.0f,  0.0f,  1.0f,  1.0f, 1.0f, 1.0f,
+                 0.5f, -0.5f,  0.5f,  0.0f,  0.0f,  1.0f,  1.0f, 1.0f, 1.0f,
+                 0.5f,  0.5f,  0.5f,  0.0f,  0.0f,  1.0f,  1.0f, 1.0f, 1.0f,
+                 0.5f,  0.5f,  0.5f,  0.0f,  0.0f,  1.0f,  1.0f, 1.0f, 1.0f,
+                -0.5f,  0.5f,  0.5f,  0.0f,  0.0f,  1.0f,  1.0f, 1.0f, 1.0f,
+                -0.5f, -0.5f,  0.5f,  0.0f,  0.0f,  1.0f,  1.0f, 1.0f, 1.0f,
+                -0.5f,  0.5f,  0.5f, -1.0f,  0.0f,  0.0f,  1.0f, 1.0f, 1.0f,
+                -0.5f,  0.5f, -0.5f, -1.0f,  0.0f,  0.0f,  1.0f, 1.0f, 1.0f,
+                -0.5f, -0.5f, -0.5f, -1.0f,  0.0f,  0.0f,  1.0f, 1.0f, 1.0f,
+                -0.5f, -0.5f, -0.5f, -1.0f,  0.0f,  0.0f,  1.0f, 1.0f, 1.0f,
+                -0.5f, -0.5f,  0.5f, -1.0f,  0.0f,  0.0f,  1.0f, 1.0f, 1.0f,
+                -0.5f,  0.5f,  0.5f, -1.0f,  0.0f,  0.0f,  1.0f, 1.0f, 1.0f,
+                 0.5f,  0.5f,  0.5f,  1.0f,  0.0f,  0.0f,  1.0f, 1.0f, 1.0f,
+                 0.5f,  0.5f, -0.5f,  1.0f,  0.0f,  0.0f,  1.0f, 1.0f, 1.0f,
+                 0.5f, -0.5f, -0.5f,  1.0f,  0.0f,  0.0f,  1.0f, 1.0f, 1.0f,
+                 0.5f, -0.5f, -0.5f,  1.0f,  0.0f,  0.0f,  1.0f, 1.0f, 1.0f,
+                 0.5f, -0.5f,  0.5f,  1.0f,  0.0f,  0.0f,  1.0f, 1.0f, 1.0f,
+                 0.5f,  0.5f,  0.5f,  1.0f,  0.0f,  0.0f,  1.0f, 1.0f, 1.0f,
+                -0.5f, -0.5f, -0.5f,  0.0f, -1.0f,  0.0f,  1.0f, 1.0f, 1.0f,
+                 0.5f, -0.5f, -0.5f,  0.0f, -1.0f,  0.0f,  1.0f, 1.0f, 1.0f,
+                 0.5f, -0.5f,  0.5f,  0.0f, -1.0f,  0.0f,  1.0f, 1.0f, 1.0f,
+                 0.5f, -0.5f,  0.5f,  0.0f, -1.0f,  0.0f,  1.0f, 1.0f, 1.0f,
+                -0.5f, -0.5f,  0.5f,  0.0f, -1.0f,  0.0f,  1.0f, 1.0f, 1.0f,
+                -0.5f, -0.5f, -0.5f,  0.0f, -1.0f,  0.0f,  1.0f, 1.0f, 1.0f,
+                -0.5f,  0.5f, -0.5f,  0.0f,  1.0f,  0.0f,  1.0f, 1.0f, 1.0f,
+                 0.5f,  0.5f, -0.5f,  0.0f,  1.0f,  0.0f,  1.0f, 1.0f, 1.0f,
+                 0.5f,  0.5f,  0.5f,  0.0f,  1.0f,  0.0f,  1.0f, 1.0f, 1.0f,
+                 0.5f,  0.5f,  0.5f,  0.0f,  1.0f,  0.0f,  1.0f, 1.0f, 1.0f,
+                -0.5f,  0.5f,  0.5f,  0.0f,  1.0f,  0.0f,  1.0f, 1.0f, 1.0f,
+                -0.5f,  0.5f, -0.5f,  0.0f,  1.0f,  0.0f,  1.0f, 1.0f, 1.0f,
         };
 
         private readonly Shader _shader;
@@ -84,48 +83,28 @@ namespace GameStudies.Objects
             GL.VertexAttribPointer(1, 3, VertexAttribPointerType.Float, false, 9 * sizeof(float), 3 * sizeof(float));
             GL.EnableVertexAttribArray(1);
 
-            // aColor @ location 1 (vec3)
+            // aColor @ location 2 (vec3)
             GL.VertexAttribPointer(2, 3, VertexAttribPointerType.Float, false, 9 * sizeof(float), 6 * sizeof(float));
             GL.EnableVertexAttribArray(2);
 
-
-            GL.EnableVertexAttribArray(0);
+            GL.BindVertexArray(0);
         }
 
         public void Draw(float dt)
         {
-
             _shader.Use();
 
-
             var model = Matrix4.CreateScale(Scale) * Matrix4.CreateTranslation(Position);
-
 
             _shader.SetMat4("model", model);
             _shader.SetVec3("aColor", Color);
 
             _shader.SetInt("material.diffuse", 0);
             _shader.SetInt("material.specular", 1);
-
-
-            _shader.SetVec3("pointLights[0].direction", new(0.2f, 1.0f, 0.3f));
-            _shader.SetVec3("pointLights[0].position", Position);
-            _shader.SetVec3("pointLights[0].ambient", AmbientColor);
-            _shader.SetFloat("pointLights[0].cutOff", MathF.Cos(Radians(12.5f)));
-            _shader.SetFloat("pointLights[0].outerCutOff", MathF.Cos(Radians(17.5f)));
-
-            _shader.SetVec3("pointLights[0].diffuse", DiffuseColor);
-            _shader.SetVec3("pointLights[0].specular", new(1.0f, 0, 0));
-
-
-            _shader.SetFloat("pointLights[0].constant", 1.0f);
-            _shader.SetFloat("pointLights[0].linear", 1.0f);
-            _shader.SetFloat("pointLights[0].quadratic", 1.0f);
-
             _shader.SetFloat("material.shininess", 16.0f);
 
             GL.BindVertexArray(_vao);
-            GL.DrawArrays(PrimitiveType.Triangles, 0, 36);
+            GL.DrawArrays(PrimitiveType.Triangles, 0, _cubeVerts.Length);
         }
 
         public void ProcessKeyboard(KeyboardState kb, float deltaTime)

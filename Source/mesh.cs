@@ -17,9 +17,9 @@ namespace GameStudies.Source
     };
     public struct Texture
     {
-        public uint id;
-        public TextureType type;
-        public string path;
+        public uint Id;
+        public TextureType Type;
+        public string Path;
     }
 
     public class Mesh
@@ -32,7 +32,6 @@ namespace GameStudies.Source
         * Matrix4.CreateRotationZ(Rotation)
         * Matrix4.CreateScale(Scale);
 
-        private readonly Shader _shader;
         private readonly Vertex[] _vertices;
         private readonly Texture[] _textures;
         private readonly uint[] _indices;
@@ -40,19 +39,15 @@ namespace GameStudies.Source
 
 
 
-        public Mesh(Shader shader, Vertex[] vertices, Texture[] textures)
+        public Mesh(Vertex[] vertices, uint[] indices, Texture[] textures)
         {
-            _shader = shader;
             _vertices = vertices;
             _textures = textures;
-            _indices = Enumerable.Range(0, vertices.Length).Select(i => (uint)i).ToArray();
+            _indices = indices;
         }
 
         public void Load()
         {
-
-            for (uint i = 0; i < 36; i++) _indices[i] = i;
-
             // Generate VAO and VBO
             _vao = GL.GenVertexArray();
             _vbo = GL.GenBuffer();
@@ -92,7 +87,7 @@ namespace GameStudies.Source
             GL.BindVertexArray(0);
         }
 
-        public void LoadTextures()
+        public void LoadTextures(Shader shader)
         {
             int diffuseNr = 1;
             int specularNr = 1;
@@ -102,14 +97,14 @@ namespace GameStudies.Source
 
                 for (int i = 0; i < _textures.Length; i++)
                 {
-                    _textures[i].id = (uint)GL.GenTexture();
+                    _textures[i].Id = (uint)GL.GenTexture();
                     GL.ActiveTexture(TextureUnit.Texture0 + i);
-                    GL.BindTexture(TextureTarget.Texture2D, _textures[i].id);
+                    GL.BindTexture(TextureTarget.Texture2D, _textures[i].Id);
 
                     string number = "";
                     string name = "";
 
-                    TextureType type = _textures[i].type;
+                    TextureType type = _textures[i].Type;
 
                     if (type == TextureType.Diffuse)
                     {
@@ -124,14 +119,14 @@ namespace GameStudies.Source
 
                     if (string.IsNullOrEmpty(number)) throw new Exception("number can not be setted");
 
-                    _shader.SetInt($"material.{name}{number}", i);
+                    shader.SetInt($"material.{name}{number}", i);
 
                     GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureWrapS, (int)TextureWrapMode.Repeat);
                     GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureWrapT, (int)TextureWrapMode.Repeat);
                     GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMinFilter, (int)TextureMinFilter.LinearMipmapNearest);
                     GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMagFilter, (int)TextureMagFilter.Linear);
 
-                    using var stream = File.OpenRead(_textures[i].path);
+                    using var stream = File.OpenRead(_textures[i].Path);
                     var image = ImageResult.FromStream(stream, ColorComponents.RedGreenBlueAlpha);
 
                     // upload
@@ -147,35 +142,35 @@ namespace GameStudies.Source
 
                     GL.GenerateMipmap(GenerateMipmapTarget.Texture2D);
 
-                    _shader.Use();
-                    _shader.SetBool("uUseTexture", true);
+                    shader.Use();
+                    shader.SetBool("uUseTexture", true);
                 }
             }
             else
             {
-                _shader.Use();
-                _shader.SetBool("uUseTexture", false);
+                shader.Use();
+                shader.SetBool("uUseTexture", false);
             }
 
-            _shader.SetFloat("material.shininess", 16.0f);
+            shader.SetFloat("material.shininess", 16.0f);
         }
 
-        public void Draw()
+        public void Draw(Shader shader)
         {
-            _shader.Use();
+            shader.Use();
 
             GL.BindVertexArray(_vao);
             GL.DrawElements(PrimitiveType.Triangles, _indices.Length, DrawElementsType.UnsignedInt, 0);
             GL.BindVertexArray(0);
         }
 
-        public void Dispose()
+        public void Dispose(Shader shader)
         {
-            _shader.Delete();
+            shader.Delete();
 
             if (_textures.Length > 0)
             {
-                int[] textureIds = _textures.Select(x => (int)x.id).ToArray();
+                int[] textureIds = _textures.Select(x => (int)x.Id).ToArray();
                 GL.DeleteTextures(textureIds.Length, textureIds);
             }
 

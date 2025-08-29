@@ -21,32 +21,47 @@ namespace GameStudies.Objects
             _shader = shader;
             Position = startPosition;
             Vertex[] vertices = CubeFactory.CreateVertices();
+            uint[] indices =
+            [
+                0, 1, 2,
+                2, 3, 0,
+                4, 5, 6,
+                6, 7, 4,
+                4, 0, 3,
+                3, 7, 4,
+                1, 5, 6,
+                6, 2, 1,
+                4, 5, 1,
+                1, 0, 4,
+                3, 2, 6,
+                6, 7, 3
+            ];
 
             Texture[] texPaths =
             [
                 new()
                 {
-                    id= 1,
-                    type= TextureType.Diffuse,
-                    path= "C:/Users/Jeffe/OneDrive/Documents/Projects/GameStudies/assets/wood_container_texture.png"
+                    Id= 1,
+                    Type= TextureType.Diffuse,
+                    Path= "C:/Users/Jeffe/OneDrive/Documents/Projects/Estudos/GameStudies/assets/wood_container_texture.png"
                 },
                 new ()
                 {
-                    id= 1,
-                    type= TextureType.Specular,
-                    path= "C:/Users/Jeffe/OneDrive/Documents/Projects/GameStudies/assets/container_steel_border.png"
+                    Id= 1,
+                    Type= TextureType.Specular,
+                    Path= "C:/Users/Jeffe/OneDrive/Documents/Projects/Estudos/GameStudies/assets/container_steel_border.png"
                 },
             ];
 
-            Mesh = new Mesh(_shader, vertices, texPaths);
+            Mesh = new Mesh(vertices, indices, texPaths);
 
             Mesh.Load();
-            Mesh.LoadTextures();
+            Mesh.LoadTextures(_shader);
         }
 
         public void Dispose()
         {
-            Mesh.Dispose();
+            Mesh.Dispose(_shader);
         }
 
         public void Draw()
@@ -60,7 +75,7 @@ namespace GameStudies.Objects
 
             _shader.SetMat4("model", model);
 
-            Mesh.Draw();
+            Mesh.Draw(_shader);
         }
 
         public void ProcessKeyboard(KeyboardState kb, float deltaTime)
