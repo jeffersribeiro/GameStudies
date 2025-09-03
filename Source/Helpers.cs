@@ -3,6 +3,10 @@ using OpenTK.Mathematics;
 
 namespace GameStudies.Source
 {
+    public static class Constants
+    {
+        public const int MAX_BONE_INFLUENCE = 4;
+    }
 
     public class Helpers
     {

@@ -22,20 +22,14 @@ namespace GameStudies.Objects
             Position = startPosition;
             Vertex[] vertices = CubeFactory.CreateVertices();
             uint[] indices =
-            [
-                0, 1, 2,
-                2, 3, 0,
-                4, 5, 6,
-                6, 7, 4,
-                4, 0, 3,
-                3, 7, 4,
-                1, 5, 6,
-                6, 2, 1,
-                4, 5, 1,
-                1, 0, 4,
-                3, 2, 6,
-                6, 7, 3
-            ];
+            {
+                0,1,2,2,3,0,
+                4,5,6,6,7,4,
+                4,0,3,3,7,4,
+                1,5,6,6,2,1,
+                4,5,1,1,0,4,
+                3,2,6,6,7,3
+            };
 
             Texture[] texPaths =
             [
@@ -55,17 +49,17 @@ namespace GameStudies.Objects
 
             Mesh = new Mesh(vertices, indices, texPaths);
 
-            Mesh.Load();
-            Mesh.LoadTextures(_shader);
+            Mesh.SetupMesh();
         }
 
         public void Dispose()
         {
-            Mesh.Dispose(_shader);
+            Mesh.Dispose();
         }
 
         public void Draw()
         {
+            _shader.Use();
             var model = Mesh.ModelMatrix
             * Matrix4.CreateScale(Scale)
             * Matrix4.CreateRotationX(MathHelper.DegreesToRadians(Rotation.X))

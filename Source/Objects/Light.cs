@@ -2,7 +2,7 @@ using OpenTK.Mathematics;
 
 namespace GameStudies.Source.Objects
 {
-    public enum LightType { Directionl, Point, Spot }
+    public enum LightType { Directional, Point, Spot }
 
     public class Light
     {
@@ -31,7 +31,7 @@ namespace GameStudies.Source.Objects
 
             switch (Type)
             {
-                case LightType.Directionl:
+                case LightType.Directional:
                     shader.SetVec3($"dirLight.direction", Direction);
                     shader.SetVec3($"dirLight.ambient", Ambient);
                     shader.SetVec3($"dirLight.diffuse", Diffuse);

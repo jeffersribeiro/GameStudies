@@ -1,7 +1,8 @@
-﻿
+﻿using System;
+using System.IO;
 using GameStudies.Objects;
 using GameStudies.Source.Objects;
-using OpenTK.Graphics.OpenGL;
+using OpenTK.Graphics.OpenGL4;
 using OpenTK.Mathematics;
 using OpenTK.Windowing.Desktop;
 using OpenTK.Windowing.GraphicsLibraryFramework;
@@ -19,35 +20,28 @@ namespace GameStudies.Source
             };
             using var game = new GameWindow(GameWindowSettings.Default, nativeSettings);
 
+            string baseDir = AppContext.BaseDirectory;
+
             const string vert = "C:/Users/Jeffe/OneDrive/Documents/Projects/Estudos/GameStudies/shaders/shader.vert";
             const string frag = "C:/Users/Jeffe/OneDrive/Documents/Projects/Estudos/GameStudies/shaders/shader.frag";
 
-            const string lightVert = "C:/Users/Jeffe/OneDrive/Documents/Projects/Estudos/GameStudies/shaders/light.vert";
-            const string lightFrag = "C:/Users/Jeffe/OneDrive/Documents/Projects/Estudos/GameStudies/shaders/light.frag";
+            string lightVert = "C:/Users/Jeffe/OneDrive/Documents/Projects/Estudos/GameStudies/shaders/light.vert";
+            string lightFrag = "C:/Users/Jeffe/OneDrive/Documents/Projects/Estudos/GameStudies/shaders/light.frag";
 
             var shader = new Shader(vert, frag);
             var lightShader = new Shader(lightVert, lightFrag);
 
             var camera = new Camera();
 
-            int quantityCubes = 20;
-            // List<CubeObject> cubes = [];
-
-            // for (int i = 0; i < quantityCubes; i++)
-            // {
-            //     cubes.Add(new CubeObject(lightShader, Helpers.GenRandomPosition()));
-            //     cubes[i].Rotation = Helpers.GenRandomRotation();
-            // }
-
-            // Model guitar = new("C:/Users/Jeffe/OneDrive/Documents/Projects/Estudos/GameStudies/assets/backpack/backpack.obj");
+            var guitar = new Model("C:/Users/Jeffe/OneDrive/Documents/Projects/Estudos/GameStudies/assets/backpack/backpack.obj");
 
             CubeObject cubeLight1 = new(lightShader, Helpers.GenRandomPosition());
             CubeObject cubeLight2 = new(lightShader, Helpers.GenRandomPosition());
             CubeObject cubeLight3 = new(lightShader, Helpers.GenRandomPosition());
 
-            cubeLight1.Scale = new(0.3f);
-            cubeLight2.Scale = new(0.3f);
-            cubeLight3.Scale = new(0.2f);
+            cubeLight1.Scale = new(1f);
+            cubeLight2.Scale = new(1f);
+            cubeLight3.Scale = new(1f);
 
 
             Light light1 = new();
@@ -56,73 +50,55 @@ namespace GameStudies.Source
 
             light1.Type = LightType.Point;
             light2.Type = LightType.Spot;
-            light3.Type = LightType.Directionl;
+            light3.Type = LightType.Directional;
 
-            light1.Diffuse = new(1.0f, 0.0f, 0.0f);
-            light2.Diffuse = new(0.0f, 1.0f, 0.0f);
-            light3.Diffuse = new(0.0f, 0.0f, 1.0f);
-
-
-            // light3.Ambient = new Vector3(0.2f, 0.2f, 0.2f);
-            // light3.Diffuse = new Vector3(0.5f, 0.5f, 0.5f);
-            // light3.Specular = new Vector3(1f, 1f, 1f);
+            light1.Diffuse = new(1f, 1f, 1f);
+            light2.Diffuse = new(1f, 1f, 1f);
+            light3.Diffuse = new(1f, 1f, 1f);
 
 
             game.Load += () =>
             {
                 game.WindowState = OpenTK.Windowing.Common.WindowState.Maximized;
-
                 GL.Enable(EnableCap.DepthTest);
             };
 
             game.UpdateFrame += e =>
             {
-                float dt = (float)e.Time;
-
                 var kb = game.KeyboardState;
                 camera.ProcessKeyboard(kb, (float)e.Time);
-
-                cubeLight1.ProcessKeyboard(kb, (float)e.Time);
-
             };
 
             game.MouseMove += e =>
             {
                 var ms = game.MouseState;
                 if (ms.IsButtonDown(MouseButton.Left))
-                {
                     camera.ProcessMouseMovement(ms.Delta);
-                }
             };
 
             game.RenderFrame += args =>
             {
-                var dt = (float)args.Time;
-
-                GL.ClearColor(0.07f, 0.07f, 0.07f, 0f);
+                GL.ClearColor(0.70f, 0.70f, 0.70f, 1f);
                 GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
 
                 var view = camera.ViewMatrix;
                 var proj = camera.ProjectionMatrix;
 
                 shader.Use();
-
                 shader.SetMat4("view", view);
                 shader.SetMat4("projection", proj);
 
                 lightShader.Use();
                 lightShader.SetMat4("view", view);
                 lightShader.SetMat4("projection", proj);
-
                 lightShader.SetVec3("viewPos", camera.Position);
 
-                // for (int i = 0; i < quantityCubes; i++)
-                // {
-                //     cubes[i].Draw();
-                // }
+                lightShader.SetInt("material.diffuse", 0);
+                lightShader.SetInt("material.specular", 1);
+                lightShader.SetFloat("material.shininess", 32.0f);
 
-                // guitar.Draw(lightShader);
-
+                // desenha o modelo
+                guitar.Draw(lightShader);
 
                 light1.Position = new(cubeLight1.Position);
                 light2.Position = new(cubeLight2.Position);
@@ -141,14 +117,15 @@ namespace GameStudies.Source
 
             game.Unload += () =>
             {
-                // for (int i = 0; i < quantityCubes; i++)
-                // {
-                //     cubes[i].Dispose();
-                // }
-
+                // libera o modelo e buffers
+                guitar.Dispose();
                 cubeLight1.Dispose();
                 cubeLight2.Dispose();
                 cubeLight3.Dispose();
+
+                // shaders devem ser deletados aqui (não dentro do Mesh)
+                shader.Delete();
+                lightShader.Delete();
             };
 
             game.Run();

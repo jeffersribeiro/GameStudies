@@ -1,3 +1,6 @@
+using System;
+using System.Collections.Generic;
+using System.IO;
 using OpenTK.Graphics.OpenGL4;
 using OpenTK.Mathematics;
 using Silk.NET.Assimp;
@@ -5,14 +8,13 @@ using Assimp = Silk.NET.Assimp;
 
 namespace GameStudies.Source
 {
-    public unsafe class Model
+    public unsafe class Model : IDisposable
     {
         readonly Assimp.Assimp assimp = Assimp.Assimp.GetApi();
-        private List<Mesh> _meshes = [];
+        private readonly List<Mesh> _meshes = new();
         private readonly uint _flags = (uint)(Assimp.PostProcessSteps.Triangulate | Assimp.PostProcessSteps.FlipUVs);
         private readonly List<Texture> _texturesLoaded = new();
-        string _directory;
-
+        private string _directory = string.Empty;
 
         public Model(string path)
         {
@@ -22,9 +24,13 @@ namespace GameStudies.Source
         public void Draw(Shader shader)
         {
             for (int i = 0; i < _meshes.Count; i++)
-            {
                 _meshes[i].Draw(shader);
-            }
+        }
+
+        public void Dispose()
+        {
+            foreach (var m in _meshes)
+                m.Dispose();
         }
 
         private void LoadModel(string path)
@@ -32,13 +38,18 @@ namespace GameStudies.Source
             Assimp.Scene* scene = assimp.ImportFile(path, _flags);
 
             if (scene == null || (scene->MFlags & (uint)Assimp.SceneFlags.Incomplete) != 0 || scene->MRootNode == null)
-            {
                 throw new Exception("error on loading model");
+
+            try
+            {
+                _directory = path.Substring(0, path.LastIndexOfAny(new[] { '/', '\\' }));
+                ProcessNode(scene->MRootNode, scene);
             }
-
-            _directory = path.Substring(0, path.LastIndexOf('/'));
-
-            ProcessNode(scene->MRootNode, scene);
+            finally
+            {
+                // prevent native memory leak
+                assimp.ReleaseImport(scene);
+            }
         }
 
         private void ProcessNode(Assimp.Node* node, Assimp.Scene* scene)
@@ -50,33 +61,40 @@ namespace GameStudies.Source
             }
 
             for (int i = 0; i < node->MNumChildren; i++)
-            {
                 ProcessNode(node->MChildren[i], scene);
-            }
-
         }
 
         private Mesh ProcessMesh(Assimp.Mesh* mesh, Assimp.Scene* scene)
         {
-            List<Vertex> vertices = [];
-            List<uint> indices = [];
-            List<Texture> textures = [];
+            List<Vertex> vertices = new();
+            List<uint> indices = new();
+            List<Texture> textures = new();
 
             for (int i = 0; i < mesh->MNumVertices; i++)
             {
                 Vertex vertex = new();
                 Vector3 vec3;
 
+                // positions
                 vec3.X = mesh->MVertices[i].X;
                 vec3.Y = mesh->MVertices[i].Y;
                 vec3.Z = mesh->MVertices[i].Z;
                 vertex.Position = vec3;
 
-                vec3.X = mesh->MNormals[i].X;
-                vec3.Y = mesh->MNormals[i].Y;
-                vec3.Z = mesh->MNormals[i].Z;
-                vertex.Normal = vec3;
+                // normals (guard against null)
+                if (mesh->MNormals != null)
+                {
+                    vec3.X = mesh->MNormals[i].X;
+                    vec3.Y = mesh->MNormals[i].Y;
+                    vec3.Z = mesh->MNormals[i].Z;
+                    vertex.Normal = vec3;
+                }
+                else
+                {
+                    vertex.Normal = Vector3.UnitZ; // fallback; or compute later
+                }
 
+                // texcoords
                 if (mesh->MTextureCoords[0] != null)
                 {
                     Vector2 vec2 = new();
@@ -96,29 +114,33 @@ namespace GameStudies.Source
             {
                 Assimp.Face face = mesh->MFaces[i];
                 for (int j = 0; j < face.MNumIndices; j++)
-                {
                     indices.Add(face.MIndices[j]);
-                }
             }
 
             if (mesh->MMaterialIndex >= 0)
             {
                 Assimp.Material* material = scene->MMaterials[mesh->MMaterialIndex];
-                List<Texture> diffuseMaps = LoadMaterialTextures(material, Assimp.TextureType.Diffuse, TextureType.Diffuse);
-                textures.AddRange(textures.LastOrDefault(), diffuseMaps.First(), diffuseMaps.LastOrDefault());
 
-                List<Texture> specularMaps = LoadMaterialTextures(material, Assimp.TextureType.Specular, TextureType.Specular);
-                textures.AddRange(textures.LastOrDefault(), diffuseMaps.FirstOrDefault(), diffuseMaps.LastOrDefault());
+                var diffuseMaps = LoadMaterialTextures(material, Assimp.TextureType.Diffuse, TextureType.Diffuse);
+                textures.AddRange(diffuseMaps);
+
+                var specularMaps = LoadMaterialTextures(material, Assimp.TextureType.Specular, TextureType.Specular);
+                textures.AddRange(specularMaps);
+
+                var normalMaps = LoadMaterialTextures(material, Assimp.TextureType.Height, TextureType.Normal);
+                textures.AddRange(normalMaps);
+
+                var heightMaps = LoadMaterialTextures(material, Assimp.TextureType.Ambient, TextureType.Height);
+                textures.AddRange(heightMaps);
+
             }
 
             return new Mesh(vertices.ToArray(), indices.ToArray(), textures.ToArray());
-
         }
 
-        private unsafe List<Texture> LoadMaterialTextures(Assimp.Material* mat, Assimp.TextureType type, TextureType typeName)
+        private List<Texture> LoadMaterialTextures(Assimp.Material* mat, Assimp.TextureType type, TextureType typeName)
         {
             var textures = new List<Texture>();
-
             uint texCount = assimp.GetMaterialTextureCount(mat, type);
 
             for (uint i = 0; i < texCount; i++)
@@ -131,23 +153,18 @@ namespace GameStudies.Source
                 TextureMapMode mapMode = default;
                 uint flags = 0;
 
-                // ✔ Assinatura “completa”
                 assimp.GetMaterialTexture(
                     mat, type, i,
-                    &str,          // out: caminho
-                    &mapping,       // out
-                    &uvIndex,       // out
-                    &blend,         // out
-                    &op,            // out
-                    &mapMode,       // out
-                    &flags          // out
+                    &str, &mapping, &uvIndex, &blend, &op, &mapMode, &flags
                 );
 
+                // convert AssimpString -> string
+                string pathStr = str.AsString; // or str.ToString() depending on Silk.NET version
 
                 bool skip = false;
                 foreach (var loaded in _texturesLoaded)
                 {
-                    if (loaded.Path == str)
+                    if (loaded.Path == pathStr)
                     {
                         textures.Add(loaded);
                         skip = true;
@@ -159,9 +176,9 @@ namespace GameStudies.Source
                 {
                     Texture texture = new()
                     {
-                        Id = (uint)TextureFromFile(str, _directory),
+                        Id = (uint)TextureFromFile(pathStr, _directory),
                         Type = typeName,
-                        Path = str
+                        Path = pathStr
                     };
 
                     textures.Add(texture);
@@ -174,17 +191,23 @@ namespace GameStudies.Source
 
         private static int TextureFromFile(string filename, string directory)
         {
+            // Build a portable path: directory of the model + texture filename
             string filepath = Path.Combine(directory, filename);
 
             int textureId = GL.GenTexture();
-            GL.BindTexture(TextureTarget.Texture2D, (uint)textureId);
+            GL.BindTexture(TextureTarget.Texture2D, textureId);
 
             using var stream = System.IO.File.OpenRead(filepath);
             var image = StbImageSharp.ImageResult.FromStream(stream, StbImageSharp.ColorComponents.RedGreenBlueAlpha);
 
             GL.TexImage2D(TextureTarget.Texture2D, 0, PixelInternalFormat.Rgba, image.Width, image.Height, 0, PixelFormat.Rgba, PixelType.UnsignedByte, image.Data);
-
             GL.GenerateMipmap(GenerateMipmapTarget.Texture2D);
+
+            // reasonable defaults
+            GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureWrapS, (int)OpenTK.Graphics.OpenGL4.TextureWrapMode.Repeat);
+            GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureWrapT, (int)OpenTK.Graphics.OpenGL4.TextureWrapMode.Repeat);
+            GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMinFilter, (int)TextureMinFilter.LinearMipmapLinear);
+            GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMagFilter, (int)TextureMagFilter.Linear);
 
             return textureId;
         }
