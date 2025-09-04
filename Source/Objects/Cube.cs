@@ -48,8 +48,6 @@ namespace GameStudies.Objects
             ];
 
             Mesh = new Mesh(vertices, indices, texPaths);
-
-            Mesh.SetupMesh();
         }
 
         public void Dispose()

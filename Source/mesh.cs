@@ -6,8 +6,8 @@ namespace GameStudies.Source
 {
     public enum TextureType { Diffuse, Specular, Normal, Height }
 
-    [StructLayout(LayoutKind.Sequential)]
-    public struct Vertex
+    [StructLayout(LayoutKind.Sequential, Pack = 1)]
+    public unsafe struct Vertex
     {
         // position
         public Vector3 Position;
@@ -23,10 +23,10 @@ namespace GameStudies.Source
         public Vector3 Bitangent;
         // bone indexes which will influence this vertex
         [MarshalAs(UnmanagedType.ByValArray, SizeConst = Constants.MAX_BONE_INFLUENCE)]
-        public int[] BoneIDs;
+        public fixed int BoneIDs[Constants.MAX_BONE_INFLUENCE];
         // weights from each bone
         [MarshalAs(UnmanagedType.ByValArray, SizeConst = Constants.MAX_BONE_INFLUENCE)]
-        public float[] Weights;
+        public fixed float Weights[Constants.MAX_BONE_INFLUENCE];
     };
 
     public struct Texture
@@ -56,6 +56,8 @@ namespace GameStudies.Source
             _vertices = vertices;
             _textures = textures;
             _indices = indices;
+
+            SetupMesh();
         }
 
         public void Draw(Shader shader)
@@ -101,6 +103,7 @@ namespace GameStudies.Source
             }
 
             shader.Use();
+
             GL.BindVertexArray(_vao);
             GL.DrawElements(PrimitiveType.Triangles, _indices.Length, DrawElementsType.UnsignedInt, 0);
             GL.BindVertexArray(0);
@@ -108,21 +111,22 @@ namespace GameStudies.Source
             GL.ActiveTexture(TextureUnit.Texture0);
         }
 
-        public void SetupMesh()
+        public unsafe void SetupMesh()
         {
             _vao = GL.GenVertexArray();
             _vbo = GL.GenBuffer();
             _ebo = GL.GenBuffer();
 
-            int stride = Marshal.SizeOf<Vertex>();
-            IntPtr normalOffset = Marshal.OffsetOf<Vertex>(nameof(Vertex.Normal));
-            IntPtr colorOffset = Marshal.OffsetOf<Vertex>(nameof(Vertex.Color));
-            IntPtr texCoordsOffset = Marshal.OffsetOf<Vertex>(nameof(Vertex.vUV));
+            int stride = sizeof(Vertex);
 
-            var tangentOffset = Marshal.OffsetOf<Vertex>(nameof(Vertex.Tangent));
-            var bitangentOffset = Marshal.OffsetOf<Vertex>(nameof(Vertex.Bitangent));
-            var boneIDsOffset = Marshal.OffsetOf<Vertex>(nameof(Vertex.BoneIDs));
-            var weightsOffset = Marshal.OffsetOf<Vertex>(nameof(Vertex.Weights));
+            int posOffset = 0;
+            int normalOffset = posOffset + sizeof(Vector3);
+            int colorOffset = normalOffset + sizeof(Vector3);
+            int uvOffset = colorOffset + sizeof(Vector3);
+            int tangentOffset = uvOffset + sizeof(Vector2);
+            int bitangentOffset = tangentOffset + sizeof(Vector3);
+            int boneOffset = bitangentOffset + sizeof(Vector3);
+            int weightOffset = boneOffset + sizeof(int) * 4;
 
             GL.BindVertexArray(_vao);
 
@@ -146,7 +150,7 @@ namespace GameStudies.Source
 
             // vertex texture coords
             GL.EnableVertexAttribArray(3);
-            GL.VertexAttribPointer(3, 2, VertexAttribPointerType.Float, false, stride, texCoordsOffset);
+            GL.VertexAttribPointer(3, 2, VertexAttribPointerType.Float, false, stride, uvOffset);
 
             // vertex tangent
             GL.EnableVertexAttribArray(4);
@@ -157,11 +161,11 @@ namespace GameStudies.Source
             GL.VertexAttribPointer(5, 3, VertexAttribPointerType.Float, false, stride, bitangentOffset);
             // ids
             GL.EnableVertexAttribArray(6);
-            GL.VertexAttribIPointer(6, 4, VertexAttribIntegerType.Int, stride, boneIDsOffset);
+            GL.VertexAttribIPointer(6, 4, VertexAttribIntegerType.Int, stride, boneOffset);
 
             // weights
             GL.EnableVertexAttribArray(7);
-            GL.VertexAttribPointer(7, 4, VertexAttribPointerType.Float, false, stride, weightsOffset);
+            GL.VertexAttribPointer(7, 4, VertexAttribPointerType.Float, false, stride, weightOffset);
 
             GL.BindVertexArray(0);
         }
