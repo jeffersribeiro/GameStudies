@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Runtime.InteropServices;
 using OpenTK.Graphics.OpenGL4;
 using OpenTK.Mathematics;
 using Silk.NET.Assimp;
@@ -121,16 +122,16 @@ namespace GameStudies.Source
             {
                 Assimp.Material* material = scene->MMaterials[mesh->MMaterialIndex];
 
-                var diffuseMaps = LoadMaterialTextures(material, Assimp.TextureType.Diffuse, TextureType.Diffuse);
+                var diffuseMaps = LoadMaterialTextures(scene, material, Assimp.TextureType.Diffuse, TextureType.Diffuse);
                 textures.AddRange(diffuseMaps);
 
-                var specularMaps = LoadMaterialTextures(material, Assimp.TextureType.Specular, TextureType.Specular);
+                var specularMaps = LoadMaterialTextures(scene, material, Assimp.TextureType.Specular, TextureType.Specular);
                 textures.AddRange(specularMaps);
 
-                var normalMaps = LoadMaterialTextures(material, Assimp.TextureType.Height, TextureType.Normal);
+                var normalMaps = LoadMaterialTextures(scene, material, Assimp.TextureType.Height, TextureType.Normal);
                 textures.AddRange(normalMaps);
 
-                var heightMaps = LoadMaterialTextures(material, Assimp.TextureType.Ambient, TextureType.Height);
+                var heightMaps = LoadMaterialTextures(scene, material, Assimp.TextureType.Ambient, TextureType.Height);
                 textures.AddRange(heightMaps);
 
             }
@@ -138,7 +139,7 @@ namespace GameStudies.Source
             return new Mesh(vertices.ToArray(), indices.ToArray(), textures.ToArray());
         }
 
-        private List<Texture> LoadMaterialTextures(Assimp.Material* mat, Assimp.TextureType type, TextureType typeName)
+        private List<Texture> LoadMaterialTextures(Assimp.Scene* scene, Assimp.Material* mat, Assimp.TextureType type, TextureType typeName)
         {
             var textures = new List<Texture>();
             uint texCount = assimp.GetMaterialTextureCount(mat, type);
@@ -174,12 +175,39 @@ namespace GameStudies.Source
 
                 if (!skip)
                 {
-                    Texture texture = new()
+                    Texture texture;
+
+
+                    if (!string.IsNullOrEmpty(pathStr) && pathStr[0] == '*')
                     {
-                        Id = (uint)TextureFromFile(pathStr, _directory),
-                        Type = typeName,
-                        Path = pathStr
-                    };
+                        // TEXTURA EMBUTIDA: "*0" -> scene->MTextures[0]
+                        if (!int.TryParse(pathStr.Substring(1), out int idx))
+                            throw new Exception($"Embedded texture index parse failed: {pathStr}");
+
+                        if (idx < 0 || (uint)idx >= scene->MNumTextures)
+                            throw new Exception($"Embedded texture index out of range: {pathStr} (num={scene->MNumTextures})");
+
+                        Assimp.Texture* emb = scene->MTextures[idx];
+                        if (emb == null)
+                            throw new Exception($"Embedded texture pointer null: {pathStr}");
+
+                        texture = new Texture
+                        {
+                            Id = (uint)TextureFromEmbedded(emb),
+                            Type = typeName,
+                            Path = pathStr
+                        };
+                    }
+                    else
+                    {
+                        // TEXTURA EXTERNA NO DISCO
+                        texture = new Texture
+                        {
+                            Id = (uint)TextureFromFile(pathStr, _directory),
+                            Type = typeName,
+                            Path = pathStr
+                        };
+                    }
 
                     textures.Add(texture);
                     _texturesLoaded.Add(texture);
@@ -210,6 +238,50 @@ namespace GameStudies.Source
             GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMagFilter, (int)TextureMagFilter.Linear);
 
             return textureId;
+        }
+
+        private static int TextureFromEmbedded(Assimp.Texture* emb)
+        {
+            int textureId = GL.GenTexture();
+            GL.BindTexture(TextureTarget.Texture2D, textureId);
+
+            if (emb->MHeight != 0)
+            {
+                int width = (int)emb->MWidth;
+                int height = (int)emb->MHeight;
+
+                // Cada texel tem 4 bytes (R,G,B,A). Em Silk, o tipo costuma ser 'Texel' com bytes R,G,B,A.
+                int size = width * height * 4;
+                byte[] pixelData = new byte[size];
+
+                // Copia memória dos texels
+                // emb->PCData é Texel*, copiamos como stream de bytes
+                Marshal.Copy((IntPtr)emb->PcData, pixelData, 0, size);
+
+                GL.TexImage2D(TextureTarget.Texture2D, 0, PixelInternalFormat.Rgba,
+                    width, height, 0, PixelFormat.Rgba, PixelType.UnsignedByte, pixelData);
+            }
+            else
+            {
+                int byteCount = (int)emb->MWidth;
+                byte[] compressed = new byte[byteCount];
+                Marshal.Copy((IntPtr)emb->PcData, compressed, 0, byteCount);
+
+                using var ms = new MemoryStream(compressed);
+                var image = StbImageSharp.ImageResult.FromStream(ms, StbImageSharp.ColorComponents.RedGreenBlueAlpha);
+
+                GL.TexImage2D(TextureTarget.Texture2D, 0, PixelInternalFormat.Rgba,
+                    image.Width, image.Height, 0, PixelFormat.Rgba, PixelType.UnsignedByte, image.Data);
+            }
+
+            GL.GenerateMipmap(GenerateMipmapTarget.Texture2D);
+            GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureWrapS, (int)OpenTK.Graphics.OpenGL4.TextureWrapMode.Repeat);
+            GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureWrapT, (int)OpenTK.Graphics.OpenGL4.TextureWrapMode.Repeat);
+            GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMinFilter, (int)TextureMinFilter.LinearMipmapLinear);
+            GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMagFilter, (int)TextureMagFilter.Linear);
+
+            return textureId;
+
         }
     }
 }
