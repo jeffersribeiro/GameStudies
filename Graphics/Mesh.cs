@@ -84,26 +84,26 @@ namespace GameStudies.Graphics
                 if (type == TextureType.Diffuse)
                 {
                     name = "texture_diffuse";
-                    var implemented = diffuseNr++;
-                    number = implemented.ToString();
+                    var incremented = diffuseNr++;
+                    number = incremented.ToString();
                 }
                 else if (type == TextureType.Specular)
                 {
                     name = "texture_specular";
-                    var implemented = specularNr++;
-                    number = implemented.ToString();
+                    var incremented = specularNr++;
+                    number = incremented.ToString();
                 }
                 else if (type == TextureType.Normal)
                 {
                     name = "texture_normal";
-                    var implemented = normalNr++;
-                    number = implemented.ToString();
+                    var incremented = normalNr++;
+                    number = incremented.ToString();
                 }
                 else if (type == TextureType.Height)
                 {
                     name = "texture_height";
-                    var implemented = heightNr++;
-                    number = implemented.ToString();
+                    var incremented = heightNr++;
+                    number = incremented.ToString();
                 }
 
                 shader.SetInt(name + number, i);
