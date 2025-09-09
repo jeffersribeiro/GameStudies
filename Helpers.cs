@@ -1,8 +1,14 @@
 
 using OpenTK.Mathematics;
 
-namespace GameStudies.Source
+namespace GameStudies
 {
+    public static class DirPathNames
+    {
+        public const string ShaderFolderName = "Shaders";
+        public const string AssetsFolderName = "Assets";
+    }
+
     public static class Constants
     {
         public const int MAX_BONE_INFLUENCE = 4;

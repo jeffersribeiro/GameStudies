@@ -1,5 +1,5 @@
-using GameStudies.Factory;
-using GameStudies.Source;
+using GameStudies.Factories;
+using GameStudies.Graphics;
 using OpenTK.Mathematics;
 using OpenTK.Windowing.GraphicsLibraryFramework;
 
@@ -14,22 +14,12 @@ namespace GameStudies.Objects
         public Vector3 Scale { get; set; } = Vector3.One;
         public float Speed { get; set; } = 1.5f;
 
-        private readonly Shader _shader;
-
-        public CubeObject(Shader shader, Vector3 startPosition, float size = 1f)
+        public CubeObject(Vector3 startPosition, float size = 1f)
         {
-            _shader = shader;
             Position = startPosition;
             Vertex[] vertices = CubeFactory.CreateVertices();
-            uint[] indices =
-            {
-                0,1,2,2,3,0,
-                4,5,6,6,7,4,
-                4,0,3,3,7,4,
-                1,5,6,6,2,1,
-                4,5,1,1,0,4,
-                3,2,6,6,7,3
-            };
+            uint[] indices = CubeFactory.Indices;
+
 
             Texture[] texPaths =
             [
@@ -37,13 +27,13 @@ namespace GameStudies.Objects
                 {
                     Id= 1,
                     Type= TextureType.Diffuse,
-                    Path= "C:/Users/Jeffe/OneDrive/Documents/Projects/Estudos/GameStudies/assets/wood_container_texture.png"
+                    Path= Path.Combine("wood_container_texture.png")
                 },
                 new ()
                 {
-                    Id= 1,
+                    Id= 2,
                     Type= TextureType.Specular,
-                    Path= "C:/Users/Jeffe/OneDrive/Documents/Projects/Estudos/GameStudies/assets/container_steel_border.png"
+                    Path= Path.Combine("container_steel_border.png")
                 },
             ];
 
@@ -55,19 +45,9 @@ namespace GameStudies.Objects
             Mesh.Dispose();
         }
 
-        public void Draw()
+        public void Draw(Shader shader)
         {
-            _shader.Use();
-            var model = Mesh.ModelMatrix
-            * Matrix4.CreateScale(Scale)
-            * Matrix4.CreateRotationX(MathHelper.DegreesToRadians(Rotation.X))
-            * Matrix4.CreateRotationY(MathHelper.DegreesToRadians(Rotation.Y))
-            * Matrix4.CreateRotationZ(MathHelper.DegreesToRadians(Rotation.Z))
-            * Matrix4.CreateTranslation(Position);
-
-            _shader.SetMat4("model", model);
-
-            Mesh.Draw(_shader);
+            Mesh.Draw(shader);
         }
 
         public void ProcessKeyboard(KeyboardState kb, float deltaTime)
@@ -78,14 +58,8 @@ namespace GameStudies.Objects
             if (kb.IsKeyDown(Keys.Left)) Position.X -= velocity;
             if (kb.IsKeyDown(Keys.Up)) Position.Z -= velocity;
             if (kb.IsKeyDown(Keys.Down)) Position.Z += velocity;
+            if (kb.IsKeyDown(Keys.KeyPad1)) Position.Y += velocity;
+            if (kb.IsKeyDown(Keys.KeyPad0)) Position.Y -= velocity;
         }
     }
 }
-
-
-
-
-
-
-
-

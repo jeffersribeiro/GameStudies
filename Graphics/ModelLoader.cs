@@ -7,7 +7,7 @@ using OpenTK.Mathematics;
 using Silk.NET.Assimp;
 using Assimp = Silk.NET.Assimp;
 
-namespace GameStudies.Source
+namespace GameStudies.Graphics
 {
     public unsafe class Model : IDisposable
     {
@@ -36,14 +36,18 @@ namespace GameStudies.Source
 
         private void LoadModel(string path)
         {
-            Assimp.Scene* scene = assimp.ImportFile(path, _flags);
+
+            string baseDir = AppContext.BaseDirectory;
+            string fullpath = Path.Combine(baseDir, DirPathNames.AssetsFolderName, path);
+
+            Assimp.Scene* scene = assimp.ImportFile(fullpath, _flags);
 
             if (scene == null || (scene->MFlags & (uint)Assimp.SceneFlags.Incomplete) != 0 || scene->MRootNode == null)
                 throw new Exception("error on loading model");
 
             try
             {
-                _directory = path.Substring(0, path.LastIndexOfAny(new[] { '/', '\\' }));
+                _directory = fullpath.Substring(0, fullpath.LastIndexOfAny(new[] { '/', '\\' }));
                 ProcessNode(scene->MRootNode, scene);
             }
             finally

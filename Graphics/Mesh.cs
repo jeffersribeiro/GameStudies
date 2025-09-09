@@ -2,7 +2,7 @@ using System.Runtime.InteropServices;
 using OpenTK.Graphics.OpenGL4;
 using OpenTK.Mathematics;
 
-namespace GameStudies.Source
+namespace GameStudies.Graphics
 {
     public enum TextureType { Diffuse, Specular, Normal, Height }
 
@@ -38,13 +38,15 @@ namespace GameStudies.Source
 
     public class Mesh
     {
-        public Vector3 Position = Helpers.GenRandomPosition();
-        public float Rotation;
+        public Vector3 Position = Vector3.Zero;
+        public Vector3 Rotation;
         public Vector3 Scale = Vector3.One;
         public Matrix4 ModelMatrix =>
-            Matrix4.CreateTranslation(Position)
-          * Matrix4.CreateRotationZ(Rotation)
-          * Matrix4.CreateScale(Scale);
+                    Matrix4.CreateScale(Scale)
+                    * Matrix4.CreateRotationX(MathHelper.DegreesToRadians(Rotation.X))
+                    * Matrix4.CreateRotationY(MathHelper.DegreesToRadians(Rotation.Y))
+                    * Matrix4.CreateRotationZ(MathHelper.DegreesToRadians(Rotation.Z))
+                    * Matrix4.CreateTranslation(Position);
 
         private readonly Vertex[] _vertices;
         private readonly uint[] _indices;
@@ -67,6 +69,9 @@ namespace GameStudies.Source
             int normalNr = 1;
             int heightNr = 1;
 
+            shader.Use();
+            shader.SetMat4("model", ModelMatrix);
+
             for (int i = 0; i < _textures.Length; i++)
             {
 
@@ -79,30 +84,34 @@ namespace GameStudies.Source
                 if (type == TextureType.Diffuse)
                 {
                     name = "texture_diffuse";
-                    number = (diffuseNr++).ToString();
+                    var implemented = diffuseNr++;
+                    number = implemented.ToString();
                 }
                 else if (type == TextureType.Specular)
                 {
                     name = "texture_specular";
-                    number = (specularNr++).ToString();
+                    var implemented = specularNr++;
+                    number = implemented.ToString();
                 }
                 else if (type == TextureType.Normal)
                 {
                     name = "texture_normal";
-                    number = (normalNr++).ToString();
+                    var implemented = normalNr++;
+                    number = implemented.ToString();
                 }
                 else if (type == TextureType.Height)
                 {
                     name = "texture_height";
-                    number = (heightNr++).ToString();
+                    var implemented = heightNr++;
+                    number = implemented.ToString();
                 }
 
-                shader.Use();
                 shader.SetInt(name + number, i);
                 GL.BindTexture(TextureTarget.Texture2D, _textures[i].Id);
             }
 
-            shader.Use();
+            shader.SetInt("uDiffuseCount", diffuseNr);
+            shader.SetInt("uSpecularCount", specularNr);
 
             GL.BindVertexArray(_vao);
             GL.DrawElements(PrimitiveType.Triangles, _indices.Length, DrawElementsType.UnsignedInt, 0);

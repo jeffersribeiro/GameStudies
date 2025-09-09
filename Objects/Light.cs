@@ -1,6 +1,8 @@
+using GameStudies.Graphics;
 using OpenTK.Mathematics;
+using OpenTK.Windowing.GraphicsLibraryFramework;
 
-namespace GameStudies.Source.Objects
+namespace GameStudies.Objects
 {
     public enum LightType { Directional, Point, Spot }
 
@@ -8,12 +10,14 @@ namespace GameStudies.Source.Objects
     {
         public LightType Type { get; set; } = LightType.Point;
 
-        public Vector3 Position { get; set; } = new(0, 0, 1);
-        public Vector3 Direction { get; set; } = new(0, -1, 0);
+        public Vector3 Position = Vector3.Zero;
+        public float Speed { get; set; } = 2.5f;
 
-        public Vector3 Ambient { get; set; } = new(0, 0, 0);
-        public Vector3 Diffuse { get; set; } = new(0, 0, 0);
-        public Vector3 Specular { get; set; } = new(0, 0, 0);
+        public Vector3 Direction { get; set; } = new(1f, 1f, 1f);
+
+        public Vector3 Ambient { get; set; } = new(1.0f, 1.0f, 1.0f);
+        public Vector3 Diffuse { get; set; } = new(1.0f, 1.0f, 1.0f);
+        public Vector3 Specular { get; set; } = new(1.0f, 1.0f, 1.0f);
 
         // attenuation (for Point/Spot)
         public float Constant { get; set; } = 1.0f;
@@ -38,13 +42,13 @@ namespace GameStudies.Source.Objects
                     shader.SetVec3($"dirLight.specular", Specular);
                     break;
                 case LightType.Point:
-                    shader.SetVec3($"pointLights[{i}].position", Position);
-                    shader.SetFloat($"pointLights[{i}].constant", Constant);
-                    shader.SetFloat($"pointLights[{i}].linear", Linear);
-                    shader.SetFloat($"pointLights[{i}].quadratic", Quadratic);
-                    shader.SetVec3($"pointLights[{i}].ambient", Ambient);
-                    shader.SetVec3($"pointLights[{i}].diffuse", Diffuse);
-                    shader.SetVec3($"pointLights[{i}].specular", Specular);
+                    shader.SetVec3($"pointLight.position", Position);
+                    shader.SetFloat($"pointLight.constant", Constant);
+                    shader.SetFloat($"pointLight.linear", Linear);
+                    shader.SetFloat($"pointLight.quadratic", Quadratic);
+                    shader.SetVec3($"pointLight.ambient", Ambient);
+                    shader.SetVec3($"pointLight.diffuse", Diffuse);
+                    shader.SetVec3($"pointLight.specular", Specular);
                     break;
                 case LightType.Spot:
                     shader.SetVec3($"spotLight.position", Position);
@@ -59,6 +63,18 @@ namespace GameStudies.Source.Objects
                     shader.SetVec3($"spotLight.diffuse", Diffuse);
                     break;
             }
+        }
+
+        public void ProcessKeyboard(KeyboardState kb, float deltaTime)
+        {
+            float velocity = Speed * deltaTime;
+
+            if (kb.IsKeyDown(Keys.Right)) Position.X += velocity;
+            if (kb.IsKeyDown(Keys.Left)) Position.X -= velocity;
+            if (kb.IsKeyDown(Keys.Up)) Position.Z -= velocity;
+            if (kb.IsKeyDown(Keys.Down)) Position.Z += velocity;
+            if (kb.IsKeyDown(Keys.KeyPad1)) Position.Y += velocity;
+            if (kb.IsKeyDown(Keys.KeyPad0)) Position.Y -= velocity;
         }
 
     }

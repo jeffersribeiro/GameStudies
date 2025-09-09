@@ -1,7 +1,7 @@
 using OpenTK.Mathematics;
 using OpenTK.Windowing.GraphicsLibraryFramework;
 
-namespace GameStudies.Source
+namespace GameStudies.Core
 {
     public class Camera
     {
@@ -13,7 +13,7 @@ namespace GameStudies.Source
         public float Yaw { get; private set; } = -90f;
         public float Pitch { get; private set; } = 0f;
 
-        public float Speed { get; set; } = 1.5f;
+        public float Speed { get; set; } = 2.5f;
         public float Sensitvity { get; set; } = 0.09f;
 
         public float AspectRatio = 800.0f / 600.0f;

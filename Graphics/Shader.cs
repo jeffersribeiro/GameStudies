@@ -1,15 +1,20 @@
 using OpenTK.Graphics.OpenGL4;
 using OpenTK.Mathematics;
 
-namespace GameStudies.Source
+namespace GameStudies.Graphics
 {
     public class Shader
     {
         public int Prog { get; }
         public Shader(string vertPath, string fragPath)
         {
-            string vertCode = File.ReadAllText(vertPath);
-            string fragCode = File.ReadAllText(fragPath);
+            string baseDir = AppContext.BaseDirectory;
+
+            string fullVertPath = Path.Combine(baseDir, DirPathNames.ShaderFolderName, vertPath);
+            string fullFragPath = Path.Combine(baseDir, DirPathNames.ShaderFolderName, fragPath);
+
+            string vertCode = File.ReadAllText(fullVertPath);
+            string fragCode = File.ReadAllText(fullFragPath);
 
             int vert = GL.CreateShader(ShaderType.VertexShader);
             GL.ShaderSource(vert, vertCode);
