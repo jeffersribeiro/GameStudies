@@ -38,16 +38,6 @@ namespace GameStudies.Graphics
 
     public class Mesh
     {
-        public Vector3 Position = Vector3.Zero;
-        public Vector3 Rotation;
-        public Vector3 Scale = Vector3.One;
-        public Matrix4 ModelMatrix =>
-                    Matrix4.CreateScale(Scale)
-                    * Matrix4.CreateRotationX(MathHelper.DegreesToRadians(Rotation.X))
-                    * Matrix4.CreateRotationY(MathHelper.DegreesToRadians(Rotation.Y))
-                    * Matrix4.CreateRotationZ(MathHelper.DegreesToRadians(Rotation.Z))
-                    * Matrix4.CreateTranslation(Position);
-
         private readonly Vertex[] _vertices;
         private readonly uint[] _indices;
         private readonly Texture[] _textures;
@@ -62,51 +52,32 @@ namespace GameStudies.Graphics
             SetupMesh();
         }
 
-        public void Draw(Shader shader)
+        public void Draw(Shader shader, in Matrix4 model)
         {
-            int diffuseNr = 1;
-            int specularNr = 1;
-            int normalNr = 1;
-            int heightNr = 1;
+            int diffuseNr = 0, specularNr = 0, normalNr = 0, heightNr = 0;
 
             shader.Use();
-            shader.SetMat4("model", ModelMatrix);
+            shader.SetMat4("model", model);
 
             for (int i = 0; i < _textures.Length; i++)
             {
 
                 GL.ActiveTexture(TextureUnit.Texture0 + i);
 
-                string number = "";
-                string name = "";
-                TextureType type = _textures[i].Type;
-
-                if (type == TextureType.Diffuse)
+                string? uname = null;
+                switch (_textures[i].Type)
                 {
-                    name = "texture_diffuse";
-                    var incremented = diffuseNr++;
-                    number = incremented.ToString();
-                }
-                else if (type == TextureType.Specular)
-                {
-                    name = "texture_specular";
-                    var incremented = specularNr++;
-                    number = incremented.ToString();
-                }
-                else if (type == TextureType.Normal)
-                {
-                    name = "texture_normal";
-                    var incremented = normalNr++;
-                    number = incremented.ToString();
-                }
-                else if (type == TextureType.Height)
-                {
-                    name = "texture_height";
-                    var incremented = heightNr++;
-                    number = incremented.ToString();
+                    case TextureType.Diffuse:
+                        uname = $"texture_diffuse{diffuseNr + 1}";
+                        diffuseNr++;
+                        break;
+                    case TextureType.Specular:
+                        uname = $"texture_specular{specularNr + 1}";
+                        specularNr++;
+                        break;
                 }
 
-                shader.SetInt(name + number, i);
+                if (uname != null) shader.SetInt(uname, i);
                 GL.BindTexture(TextureTarget.Texture2D, _textures[i].Id);
             }
 

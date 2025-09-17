@@ -11,6 +11,10 @@ namespace GameStudies.Graphics
 {
     public unsafe class Model : IDisposable
     {
+        public Vector3 Position = Vector3.Zero;
+        public Vector3 Rotation;
+        public Vector3 Scale = Vector3.One;
+
         readonly Assimp.Assimp assimp = Assimp.Assimp.GetApi();
         private readonly List<Mesh> _meshes = new();
         private readonly uint _flags = (uint)(Assimp.PostProcessSteps.Triangulate | Assimp.PostProcessSteps.FlipUVs);
@@ -24,8 +28,15 @@ namespace GameStudies.Graphics
 
         public void Draw(Shader shader)
         {
+            var model =
+            Matrix4.CreateScale(Scale)
+            * Matrix4.CreateRotationX(MathHelper.DegreesToRadians(Rotation.X))
+            * Matrix4.CreateRotationY(MathHelper.DegreesToRadians(Rotation.Y))
+            * Matrix4.CreateRotationZ(MathHelper.DegreesToRadians(Rotation.Z))
+            * Matrix4.CreateTranslation(Position);
+
             for (int i = 0; i < _meshes.Count; i++)
-                _meshes[i].Draw(shader);
+                _meshes[i].Draw(shader, in model);
         }
 
         public void Dispose()
@@ -229,6 +240,8 @@ namespace GameStudies.Graphics
             int textureId = GL.GenTexture();
             GL.BindTexture(TextureTarget.Texture2D, textureId);
 
+            // StbImageSharp.StbImage.stbi_set_flip_vertically_on_load(1);
+
             using var stream = System.IO.File.OpenRead(filepath);
             var image = StbImageSharp.ImageResult.FromStream(stream, StbImageSharp.ColorComponents.RedGreenBlueAlpha);
 
@@ -270,6 +283,8 @@ namespace GameStudies.Graphics
                 int byteCount = (int)emb->MWidth;
                 byte[] compressed = new byte[byteCount];
                 Marshal.Copy((IntPtr)emb->PcData, compressed, 0, byteCount);
+
+                // StbImageSharp.StbImage.stbi_set_flip_vertically_on_load(1);
 
                 using var ms = new MemoryStream(compressed);
                 var image = StbImageSharp.ImageResult.FromStream(ms, StbImageSharp.ColorComponents.RedGreenBlueAlpha);

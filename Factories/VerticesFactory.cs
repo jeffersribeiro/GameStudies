@@ -3,7 +3,7 @@ using GameStudies.Graphics;
 
 namespace GameStudies.Factories
 {
-    public static class CubeFactory
+    public static class VerticesFactory
     {
         // Indices: 6 por face (2 triângulos), total 36.
         public static readonly uint[] Indices =
@@ -26,12 +26,12 @@ namespace GameStudies.Factories
         /// Cria 24 vértices (4 por face) com UVs e normais corretas.
         /// size = aresta do cubo (default 1.0f).
         /// </summary>
-        public static Vertex[] CreateVertices(float size = 1.0f)
+        public static Vertex[] CreateCube(float size = 1.0f)
         {
             float h = size * 0.5f; // half-size
             var c = new Vector3(0.08f, 0.93f, 0.93f); // cor base (opcional)
 
-            return new Vertex[]
+            return new Vertex[24]
             {
                 // ===== FRONT (+Z) =====
                 // v0..v3  (CCW olhando a face)
@@ -72,5 +72,19 @@ namespace GameStudies.Factories
                 new() { Position = new(-h, -h,  h), Normal = new(0, -1, 0), Color = c, vUV = new(0, 1) }, //23
             };
         }
+        public static Vertex[] CreateSquare(float size = 1.0f)
+        {
+            float h = size * 0.5f; // half-size
+            var c = new Vector3(0.08f, 0.93f, 0.93f); // cor base (opcional)
+
+            return new Vertex[4]
+            {
+                new() { Position = new(-h, -h,  h), Normal = new(0, 0, 1), Color = c, vUV = new(0, 0) }, // 0
+                new() { Position = new( h, -h,  h), Normal = new(0, 0, 1), Color = c, vUV = new(1, 0) }, // 1
+                new() { Position = new( h,  h,  h), Normal = new(0, 0, 1), Color = c, vUV = new(1, 1) }, // 2
+                new() { Position = new(-h,  h,  h), Normal = new(0, 0, 1), Color = c, vUV = new(0, 1) }, // 3
+            };
+        }
+
     }
 }

@@ -8,7 +8,8 @@ using ImGuiNET;
 // your own namespaces (adjust as per your project)
 using GameStudies.Graphics;     // Shader, Model, etc.
 using GameStudies.Controllers;  // ImGuiController, Camera
-using GameStudies.Objects;      // CubeObject, Light, Helpers
+using GameStudies.Objects;
+using GameStudies.Factories;      // CubeObject, Light, Helpers
 
 namespace GameStudies.Core
 {
@@ -23,6 +24,8 @@ namespace GameStudies.Core
         private Light _light1 = new();
         private Light _light2 = new();
         private Light _light3 = new();
+        private CubeObject cube;
+        private SquareObject square;
 
         // --- Input state ---
         private bool _rightMouseDown;
@@ -54,8 +57,9 @@ namespace GameStudies.Core
             base.OnLoad();
 
             // GL state
-            GL.ClearColor(0.70f, 0.70f, 0.70f, 1f);
+            GL.ClearColor(0.3f, 0.3f, 0.3f, 1f);
             GL.Enable(EnableCap.DepthTest);
+            GL.Enable(EnableCap.Blend);
             GL.Viewport(0, 0, ClientSize.X, ClientSize.Y);
 
             // Camera
@@ -69,14 +73,18 @@ namespace GameStudies.Core
 
             // Model (example asset)
             // TODO: replace with your asset path
-            _guitar = new Model("backpack/backpack.obj");
-
+            _guitar = new Model("ps1psx-hoplite-chan/source/HOPLITE CHAN ANIMATED.glb");
+            cube = new(Helpers.GenRandomPosition());
+            square = new(Helpers.GenRandomPosition());
 
             // Lights configuration
-            _light1.Type = LightType.Spot;
-            _light2.Type = LightType.Point;
+            _light1.Type = LightType.Point;
+            _light2.Type = LightType.Spot;
             _light3.Type = LightType.Directional;
 
+            _light2.Specular = new(1.0f, 1.0f, 1.0f);
+            _light2.Ambient = new(1.0f, 1.0f, 1.0f);
+            _light2.Direction = new(1.0f, 1.0f, 1.0f);
 
             // ImGui
             _imgui = new ImGuiController(ClientSize.X, ClientSize.Y);
@@ -117,7 +125,7 @@ namespace GameStudies.Core
             // Keyboard movement (WASD, etc.) for camera
             var kb = KeyboardState;
             _camera.ProcessKeyboard(kb, (float)e.Time);
-            _light1.ProcessKeyboard(kb, (float)e.Time);
+            square.ProcessKeyboard(kb, (float)e.Time);
 
             // RMB look
             if (_rightMouseDown)
@@ -163,6 +171,11 @@ namespace GameStudies.Core
             // Draw model
             _guitar.Draw(_shader);
 
+            cube.Draw(_shader);
+            square.Draw(_shader);
+
+            _light2.Position = cube.Position;
+
 
             // Push light uniforms
             _light1.Apply(_shader, 0);
@@ -180,6 +193,8 @@ namespace GameStudies.Core
             base.OnUnload();
 
             _guitar?.Dispose();
+            cube.Dispose();
+            square.Dispose();
 
             _shader?.Delete();
             _imgui?.Dispose();

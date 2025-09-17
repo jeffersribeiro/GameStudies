@@ -6,7 +6,7 @@ using OpenTK.Windowing.GraphicsLibraryFramework;
 namespace GameStudies.Objects
 {
 
-    public class CubeObject
+    public class SquareObject
     {
         public Mesh Mesh { get; }
         public Vector3 Position = new(0.0f, 0.0f, -0.0f);
@@ -14,25 +14,19 @@ namespace GameStudies.Objects
         public Vector3 Scale { get; set; } = Vector3.One;
         public float Speed { get; set; } = 1.5f;
 
-        public CubeObject(Vector3 startPosition, float size = 1f)
+        public SquareObject(Vector3 startPosition, float size = 1f)
         {
             Position = startPosition;
-            Vertex[] vertices = VerticesFactory.CreateCube();
+            Vertex[] vertices = VerticesFactory.CreateSquare();
             uint[] indices = VerticesFactory.Indices;
 
             Texture[] texPaths =
             [
                 new()
                 {
-                    Id = (uint)TextureLoader.Load2D(Path.Combine("Assets", "wood_container_texture.png")),
+                    Id = (uint)TextureLoader.Load2D(Path.Combine("Assets", "grass.png")),
                     Type = TextureType.Diffuse,
-                    Path = Path.Combine("wood_container_texture.png")
-                },
-                new()
-                {
-                    Id = (uint)TextureLoader.Load2D(Path.Combine("Assets", "container_steel_border.png")),
-                    Type = TextureType.Specular,
-                    Path = Path.Combine("container_steel_border.png")
+                    Path = Path.Combine("grass.png")
                 },
             ];
 
