@@ -1,0 +1,46 @@
+# Blender3D MTL File: digm.blend
+# Material Count: 4
+newmtl base_base.png
+Ns 92.156863
+Ka 0.000000 0.000000 0.000000
+Kd 0.512000 0.512000 0.512000
+Ks 0.250000 0.250000 0.250000
+Ni 1.000000
+d 0.000000
+illum 2
+map_Kd base.jpg
+
+
+newmtl perso_cab
+Ns 96.078431
+Ka 0.000000 0.000000 0.000000
+Kd 0.640000 0.640000 0.640000
+Ks 0.500000 0.500000 0.500000
+Ni 1.000000
+d 1.000000
+illum 2
+map_Kd seiyav21.png
+
+
+newmtl Tex_0248_0.dds_armas
+Ns 96.078431
+Ka 0.000000 0.000000 0.000000
+Kd 0.640000 0.640000 0.640000
+Ks 0.500000 0.500000 0.500000
+Ni 1.000000
+d 1.000000
+illum 2
+map_Kd arma.png
+
+
+newmtl model_cab
+Ns 86.274510
+Ka 0.000000 0.000000 0.000000
+Kd 0.327680 0.327680 0.327680
+Ks 0.062500 0.062500 0.062500
+Ni 1.000000
+d 0.000000
+illum 2
+map_Kd seiyav2cc.png
+
+
