@@ -10,7 +10,7 @@ namespace GameStudies.Objects
     {
         public Mesh Mesh { get; }
         public Vector3 Position = new(0.0f, 0.0f, -0.0f);
-        public Vector3 Rotation { get; set; }
+        public Vector3 Rotation = Vector3.Zero;
         public Vector3 Scale { get; set; } = Vector3.One;
         public float Speed { get; set; } = 1.5f;
 
@@ -24,9 +24,9 @@ namespace GameStudies.Objects
             [
                 new()
                 {
-                    Id = (uint)TextureLoader.Load2D(Path.Combine("Assets", "grass.png")),
+                    Id = (uint)TextureLoader.Load2D(Path.Combine("Assets", "asphat.png")),
                     Type = TextureType.Diffuse,
-                    Path = Path.Combine("grass.png")
+                    Path = Path.Combine("asphat.png")
                 },
             ];
 
@@ -60,6 +60,9 @@ namespace GameStudies.Objects
             if (kb.IsKeyDown(Keys.Down)) Position.Z += velocity;
             if (kb.IsKeyDown(Keys.KeyPad1)) Position.Y += velocity;
             if (kb.IsKeyDown(Keys.KeyPad0)) Position.Y -= velocity;
+            if (kb.IsKeyDown(Keys.KeyPad8)) Rotation.X -= velocity * 10;
+            if (kb.IsKeyDown(Keys.KeyPad2)) Rotation.Y -= velocity * 10;
+            if (kb.IsKeyDown(Keys.KeyPad6)) Rotation.Z -= velocity * 10;
         }
     }
 }

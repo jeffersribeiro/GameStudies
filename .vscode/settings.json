@@ -1,4 +1,6 @@
 {
+    "editor.formatOnSave": true,
+    "editor.formatOnSaveMode": "file",
     "editor.quickSuggestions": {
         "other": false,
         "comments": false,
@@ -10,7 +12,8 @@
     "editor.suggest.snippetsPreventQuickSuggestions": true,
     "[csharp]": {
         "editor.acceptSuggestionOnTab": false,
-        "editor.tabCompletion": "off"
+        "editor.tabCompletion": "off",
+        "editor.defaultFormatter": "ms-dotnettools.csharp"
     },
     "webgl-glsl-editor.format.placeSpaceAfterKeywords": true,
     "[glsl]": {
