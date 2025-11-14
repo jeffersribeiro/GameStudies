@@ -41,10 +41,13 @@ namespace GameStudies.Graphics
         private readonly Vertex[] _vertices;
         private readonly uint[] _indices;
         private readonly Texture[] _textures;
+        private readonly Matrix4 _nodeTransform;
+
         private int _vao, _vbo, _ebo;
 
-        public Mesh(Vertex[] vertices, uint[] indices, Texture[] textures)
+        public Mesh(Vertex[] vertices, uint[] indices, Texture[] textures, in Matrix4 nodeTransform)
         {
+            _nodeTransform = nodeTransform;
             _vertices = vertices;
             _textures = textures;
             _indices = indices;
@@ -52,10 +55,11 @@ namespace GameStudies.Graphics
             SetupMesh();
         }
 
-        public void Draw(Shader shader, in Matrix4 model)
+        public void Draw(Shader shader, in Matrix4 modelFromEntity)
         {
             int diffuseNr = 0, specularNr = 0, normalNr = 0, heightNr = 0;
 
+            Matrix4 model = modelFromEntity * _nodeTransform;
             shader.Use();
             shader.SetMat4("model", model);
 

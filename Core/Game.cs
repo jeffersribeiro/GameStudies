@@ -78,7 +78,7 @@ namespace GameStudies.Core
             var fragPath = "light.frag";
             _shader = new Shader(vertPath, fragPath);
 
-            _guitar = new Model("ps1psx-hoplite-chan/source/HOPLITE CHAN ANIMATED.glb");
+            _guitar = new Model("TinySword/Characters/gltf/Barbarian.glb");
 
             cube = new(Helpers.GenRandomPosition());
             square1 = new(Helpers.GenRandomPosition());

@@ -17,7 +17,12 @@ namespace GameStudies.Graphics
 
         readonly Assimp.Assimp assimp = Assimp.Assimp.GetApi();
         private readonly List<Mesh> _meshes = new();
-        private readonly uint _flags = (uint)(Assimp.PostProcessSteps.Triangulate | Assimp.PostProcessSteps.FlipUVs);
+        private readonly uint _flags = (uint)(
+        Assimp.PostProcessSteps.Triangulate |
+        Assimp.PostProcessSteps.FlipUVs |
+        Assimp.PostProcessSteps.PreTransformVertices
+        );
+
         private readonly List<Texture> _texturesLoaded = new();
         private string _directory = string.Empty;
 
@@ -59,7 +64,7 @@ namespace GameStudies.Graphics
             try
             {
                 _directory = fullpath.Substring(0, fullpath.LastIndexOfAny(new[] { '/', '\\' }));
-                ProcessNode(scene->MRootNode, scene);
+                ProcessNode(scene->MRootNode, Matrix4.Identity, scene);
             }
             finally
             {
@@ -68,19 +73,22 @@ namespace GameStudies.Graphics
             }
         }
 
-        private void ProcessNode(Assimp.Node* node, Assimp.Scene* scene)
+        private void ProcessNode(Assimp.Node* node, Matrix4 parentGlobal, Assimp.Scene* scene)
         {
+            Matrix4 local = node->MTransformation.ToOpenTK();
+            Matrix4 global = parentGlobal * local;
+
             for (int i = 0; i < node->MNumMeshes; i++)
             {
                 Assimp.Mesh* mesh = scene->MMeshes[node->MMeshes[i]];
-                _meshes.Add(ProcessMesh(mesh, scene));
+                _meshes.Add(ProcessMesh(mesh, global, scene));
             }
 
             for (int i = 0; i < node->MNumChildren; i++)
-                ProcessNode(node->MChildren[i], scene);
+                ProcessNode(node->MChildren[i], global, scene);
         }
 
-        private Mesh ProcessMesh(Assimp.Mesh* mesh, Assimp.Scene* scene)
+        private Mesh ProcessMesh(Assimp.Mesh* mesh, Matrix4 global, Assimp.Scene* scene)
         {
             List<Vertex> vertices = new();
             List<uint> indices = new();
@@ -151,7 +159,7 @@ namespace GameStudies.Graphics
 
             }
 
-            return new Mesh(vertices.ToArray(), indices.ToArray(), textures.ToArray());
+            return new Mesh(vertices.ToArray(), indices.ToArray(), textures.ToArray(), in global);
         }
 
         private List<Texture> LoadMaterialTextures(Assimp.Scene* scene, Assimp.Material* mat, Assimp.TextureType type, TextureType typeName)

@@ -36,7 +36,7 @@ namespace GameStudies.Objects
                 },
             ];
 
-            Mesh = new Mesh(vertices, indices, texPaths);
+            Mesh = new Mesh(vertices, indices, texPaths, in Matrix4.Identity);
         }
 
         public void Dispose()
