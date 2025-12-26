@@ -9,7 +9,8 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <None Include="Shaders\**\*.*" CopyToOutputDirectory="PreserveNewest" />
+    <None Include="shader.frag" CopyToOutputDirectory="PreserveNewest" />
+    <None Include="shader.vert" CopyToOutputDirectory="PreserveNewest" />
     <None Include="Assets\**\*.*" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
 

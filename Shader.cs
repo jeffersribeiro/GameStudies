@@ -10,8 +10,8 @@ namespace GameStudies.Graphics
         {
             string baseDir = AppContext.BaseDirectory;
 
-            string fullVertPath = Path.Combine(baseDir, DirPathNames.ShaderFolderName, vertPath);
-            string fullFragPath = Path.Combine(baseDir, DirPathNames.ShaderFolderName, fragPath);
+            string fullVertPath = Path.Combine(baseDir, vertPath);
+            string fullFragPath = Path.Combine(baseDir, fragPath);
 
             string vertCode = File.ReadAllText(fullVertPath);
             string fragCode = File.ReadAllText(fullFragPath);

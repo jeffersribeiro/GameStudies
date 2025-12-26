@@ -5,7 +5,6 @@ using OpenTK.Mathematics;
 using OpenTK.Windowing.GraphicsLibraryFramework;
 
 using GameStudies.Graphics;
-using GameStudies.Objects;
 
 namespace GameStudies.Core
 {
@@ -14,27 +13,10 @@ namespace GameStudies.Core
         private Shader _shader = default!;
         private Camera _camera = default!;
 
-        private Framebuffer _fbo = default!;
-        private ScreenQuad _quad = default!;
-        private Shader _postShader = default!;
-
-        private Skybox _skybox;
-
         private Model _model = default!;
         private Animator _animator = default!;
-        private Light _light1 = new();
-        private Light _light2 = new();
-        private Light _light3 = new();
-        private CubeObject cube;
-        private SquareObject square1;
-        private SquareObject square2;
-
         private bool _rightMouseDown;
         private Vector2 _lastMousePos;
-        private bool _autoRotate = true;
-        private Vector3 _cubePos = Vector3.Zero;
-        private float _cubeScale = 1.0f;
-        private float _cubeSpeed = 1.5f;
 
         public Game(int width, int height, string title)
             : base(
@@ -60,50 +42,19 @@ namespace GameStudies.Core
             _camera.AspectRatio = (float)ClientSize.X / ClientSize.Y;
 
 
-            string[] faces = [
-                "skybox/right.jpg",
-                "skybox/left.jpg",
-                "skybox/top.jpg",
-                "skybox/bottom.jpg",
-                "skybox/front.jpg",
-                "skybox/back.jpg"
-            ];
-
-            _skybox = new(faces);
-
-            _fbo = new(ClientSize.X, ClientSize.Y);
-            _quad = new();
-            _postShader = new("post.vert", "post.frag");
-
-            var vertPath = "light.vert";
-            var fragPath = "light.frag";
+            var vertPath = "shader.vert";
+            var fragPath = "shader.frag";
             _shader = new Shader(vertPath, fragPath);
 
             _model = new Model("TinySword/Characters/gltf/Knight.glb");
             Animation danceAnimation = new("TinySword/Characters/gltf/Knight.glb", _model);
             _animator = new(danceAnimation);
-
-            cube = new(Helpers.GenRandomPosition());
-            square1 = new(Helpers.GenRandomPosition());
-            square2 = new(Helpers.GenRandomPosition());
-
-            square2.Rotation = new(1.0f, 0, 0);
-
-            _light1.Type = LightType.Point;
-            _light2.Type = LightType.Spot;
-            _light3.Type = LightType.Directional;
-
-            _light2.Specular = new(1.0f, 1.0f, 1.0f);
-            _light2.Ambient = new(1.0f, 1.0f, 1.0f);
-            _light2.Direction = new(1.0f, 1.0f, 1.0f);
-
         }
 
         protected override void OnResize(ResizeEventArgs e)
         {
             base.OnResize(e);
             GL.Viewport(0, 0, e.Width, e.Height);
-            _fbo.Resize(e.Width, e.Height);
         }
 
         protected override void OnMouseDown(MouseButtonEventArgs e)
@@ -132,7 +83,6 @@ namespace GameStudies.Core
         {
             var kb = KeyboardState;
             _camera.ProcessKeyboard(kb, (float)e.Time);
-            square1.ProcessKeyboard(kb, (float)e.Time);
 
             _animator.UpdateAnimation((float)e.Time);
 
@@ -149,11 +99,9 @@ namespace GameStudies.Core
         {
             base.OnRenderFrame(args);
 
-            _fbo.Bind();
             GL.Enable(EnableCap.DepthTest);
             GL.DepthFunc(DepthFunction.Less);
             GL.DepthMask(true);
-            GL.Viewport(0, 0, _fbo.Width, _fbo.Height);
             GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
 
             var view = _camera.ViewMatrix;
@@ -172,49 +120,19 @@ namespace GameStudies.Core
 
             _shader.SetFloat("material.shininess", 32.0f);
 
-            _light1.Diffuse = new(1.0f, 0, 0);
-
             _model.Draw(_shader);
-            cube.Draw(_shader);
-
-            var transparentObjects = new List<SquareObject> { square1, square2 };
-
-            transparentObjects = transparentObjects
-            .OrderByDescending(sq => (_camera.Position - sq.Position).Length)
-            .ToList();
-
-            foreach (var sq in transparentObjects)
-            {
-                sq.Draw(_shader);
-            }
-
-            _light2.Position = cube.Position;
-
-            _light1.Apply(_shader, 0);
-            _light2.Apply(_shader, 1);
-            //_light3.Apply(_shader, 2);
 
             GL.DepthFunc(DepthFunction.Lequal);
             GL.Disable(EnableCap.CullFace);
-
-            _skybox.Draw(_camera.ViewMatrix, _camera.ProjectionMatrix);
 
             GL.Enable(EnableCap.CullFace);
             GL.CullFace(CullFaceMode.Back);
             GL.FrontFace(FrontFaceDirection.Ccw);
             GL.DepthFunc(DepthFunction.Less);
 
-            Framebuffer.BindDefault();
             GL.Viewport(0, 0, ClientSize.X, ClientSize.Y);
             GL.Clear(ClearBufferMask.ColorBufferBit);
 
-            GL.Disable(EnableCap.DepthTest);
-            _postShader.Use();
-            GL.ActiveTexture(TextureUnit.Texture0);
-            GL.BindTexture(TextureTarget.Texture2D, _fbo.ColorTex);
-            _postShader.SetInt("sceneTex", 0);
-
-            _quad.Draw();
             GL.Enable(EnableCap.DepthTest);
 
             SwapBuffers();
@@ -223,16 +141,7 @@ namespace GameStudies.Core
         protected override void OnUnload()
         {
             base.OnUnload();
-
             _model?.Dispose();
-            cube.Dispose();
-            square1.Dispose();
-            square2.Dispose();
-
-            _postShader?.Delete();
-            _quad?.Dispose();
-            _fbo?.Dispose();
-
             _shader?.Delete();
         }
     }
