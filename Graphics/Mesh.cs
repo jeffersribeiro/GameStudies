@@ -22,11 +22,9 @@ namespace GameStudies.Graphics
         // bitangent
         public Vector3 Bitangent;
         // bone indexes which will influence this vertex
-        [MarshalAs(UnmanagedType.ByValArray, SizeConst = Constants.MAX_BONE_INFLUENCE)]
-        public fixed int BoneIDs[Constants.MAX_BONE_INFLUENCE];
+        public Vector4i BoneIDs;
         // weights from each bone
-        [MarshalAs(UnmanagedType.ByValArray, SizeConst = Constants.MAX_BONE_INFLUENCE)]
-        public fixed float Weights[Constants.MAX_BONE_INFLUENCE];
+        public Vector4 Weights;
     };
 
     public struct Texture
@@ -103,14 +101,7 @@ namespace GameStudies.Graphics
 
             int stride = sizeof(Vertex);
 
-            int posOffset = 0;
-            int normalOffset = posOffset + sizeof(Vector3);
-            int colorOffset = normalOffset + sizeof(Vector3);
-            int uvOffset = colorOffset + sizeof(Vector3);
-            int tangentOffset = uvOffset + sizeof(Vector2);
-            int bitangentOffset = tangentOffset + sizeof(Vector3);
-            int boneOffset = bitangentOffset + sizeof(Vector3);
-            int weightOffset = boneOffset + sizeof(int) * 4;
+            nint off(string field) => Marshal.OffsetOf<Vertex>(field);
 
             GL.BindVertexArray(_vao);
 
@@ -122,34 +113,34 @@ namespace GameStudies.Graphics
 
             // vertex Positions
             GL.EnableVertexAttribArray(0);
-            GL.VertexAttribPointer(0, 3, VertexAttribPointerType.Float, false, stride, 0);
+            GL.VertexAttribPointer(0, 3, VertexAttribPointerType.Float, false, stride, off(nameof(Vertex.Position)));
 
             // vertex normals
             GL.EnableVertexAttribArray(1);
-            GL.VertexAttribPointer(1, 3, VertexAttribPointerType.Float, false, stride, normalOffset);
+            GL.VertexAttribPointer(1, 3, VertexAttribPointerType.Float, false, stride, off(nameof(Vertex.Normal)));
 
             // vertex colors
             GL.EnableVertexAttribArray(2);
-            GL.VertexAttribPointer(2, 3, VertexAttribPointerType.Float, false, stride, colorOffset);
+            GL.VertexAttribPointer(2, 3, VertexAttribPointerType.Float, false, stride, off(nameof(Vertex.Color)));
 
             // vertex texture coords
             GL.EnableVertexAttribArray(3);
-            GL.VertexAttribPointer(3, 2, VertexAttribPointerType.Float, false, stride, uvOffset);
+            GL.VertexAttribPointer(3, 2, VertexAttribPointerType.Float, false, stride, off(nameof(Vertex.vUV)));
 
             // vertex tangent
             GL.EnableVertexAttribArray(4);
-            GL.VertexAttribPointer(4, 3, VertexAttribPointerType.Float, false, stride, tangentOffset);
+            GL.VertexAttribPointer(4, 3, VertexAttribPointerType.Float, false, stride, off(nameof(Vertex.Tangent)));
 
             // vertex bitangent
             GL.EnableVertexAttribArray(5);
-            GL.VertexAttribPointer(5, 3, VertexAttribPointerType.Float, false, stride, bitangentOffset);
+            GL.VertexAttribPointer(5, 3, VertexAttribPointerType.Float, false, stride, off(nameof(Vertex.Bitangent)));
             // ids
             GL.EnableVertexAttribArray(6);
-            GL.VertexAttribIPointer(6, 4, VertexAttribIntegerType.Int, stride, boneOffset);
+            GL.VertexAttribIPointer(6, 4, VertexAttribIntegerType.Int, stride, off(nameof(Vertex.BoneIDs)));
 
             // weights
             GL.EnableVertexAttribArray(7);
-            GL.VertexAttribPointer(7, 4, VertexAttribPointerType.Float, false, stride, weightOffset);
+            GL.VertexAttribPointer(7, 4, VertexAttribPointerType.Float, false, stride, off(nameof(Vertex.Weights)));
 
             GL.BindVertexArray(0);
         }

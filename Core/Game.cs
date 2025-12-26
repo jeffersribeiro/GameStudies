@@ -20,7 +20,8 @@ namespace GameStudies.Core
 
         private Skybox _skybox;
 
-        private Model _guitar = default!;
+        private Model _model = default!;
+        private Animator _animator = default!;
         private Light _light1 = new();
         private Light _light2 = new();
         private Light _light3 = new();
@@ -78,7 +79,9 @@ namespace GameStudies.Core
             var fragPath = "light.frag";
             _shader = new Shader(vertPath, fragPath);
 
-            _guitar = new Model("TinySword/Characters/gltf/Barbarian.glb");
+            _model = new Model("TinySword/Characters/gltf/Knight.glb");
+            Animation danceAnimation = new("TinySword/Characters/gltf/Knight.glb", _model);
+            _animator = new(danceAnimation);
 
             cube = new(Helpers.GenRandomPosition());
             square1 = new(Helpers.GenRandomPosition());
@@ -131,6 +134,8 @@ namespace GameStudies.Core
             _camera.ProcessKeyboard(kb, (float)e.Time);
             square1.ProcessKeyboard(kb, (float)e.Time);
 
+            _animator.UpdateAnimation((float)e.Time);
+
             if (_rightMouseDown)
             {
                 var pos = MouseState.Position;
@@ -159,11 +164,17 @@ namespace GameStudies.Core
             _shader.SetMat4("projection", proj);
             _shader.SetVec3("viewPos", _camera.Position);
 
+            var transforms = _animator.GetFinalBoneMatrices();
+            for (int i = 0; i < transforms.Count; ++i)
+            {
+                _shader.SetMat4($"finalBonesMatrices[{i}]", transforms[i]);
+            }
+
             _shader.SetFloat("material.shininess", 32.0f);
 
             _light1.Diffuse = new(1.0f, 0, 0);
 
-            _guitar.Draw(_shader);
+            _model.Draw(_shader);
             cube.Draw(_shader);
 
             var transparentObjects = new List<SquareObject> { square1, square2 };
@@ -213,7 +224,7 @@ namespace GameStudies.Core
         {
             base.OnUnload();
 
-            _guitar?.Dispose();
+            _model?.Dispose();
             cube.Dispose();
             square1.Dispose();
             square2.Dispose();

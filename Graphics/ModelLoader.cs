@@ -18,10 +18,16 @@ namespace GameStudies.Graphics
         readonly Assimp.Assimp assimp = Assimp.Assimp.GetApi();
         private readonly List<Mesh> _meshes = new();
         private readonly uint _flags = (uint)(
-        Assimp.PostProcessSteps.Triangulate |
-        Assimp.PostProcessSteps.FlipUVs |
-        Assimp.PostProcessSteps.PreTransformVertices
-        );
+        PostProcessSteps.Triangulate |
+        PostProcessSteps.FlipUVs);
+
+        private Dictionary<string, BoneInfo> _boneInfoMap = new();
+        private int _boneCounter = 0;
+
+        public ref Dictionary<string, BoneInfo> GetBoneInfoMap() { return ref _boneInfoMap; }
+        public ref int GetBoneCount() { return ref _boneCounter; }
+
+        private const int MAX_BONE_WEIGHTS = Constants.MAX_BONE_WEIGHTS;
 
         private readonly List<Texture> _texturesLoaded = new();
         private string _directory = string.Empty;
@@ -81,11 +87,35 @@ namespace GameStudies.Graphics
             for (int i = 0; i < node->MNumMeshes; i++)
             {
                 Assimp.Mesh* mesh = scene->MMeshes[node->MMeshes[i]];
-                _meshes.Add(ProcessMesh(mesh, global, scene));
+
+                // Skinned vs rigid:
+                Matrix4 nodeTransformForMesh;
+
+                if (mesh->MNumBones > 0)
+                {
+                    // Skinned mesh: DO NOT bake node transform, bones will handle it
+                    nodeTransformForMesh = Matrix4.Identity;
+                }
+                else
+                {
+                    // Rigid mesh: we still need the node global transform
+                    nodeTransformForMesh = global;
+                }
+
+                _meshes.Add(ProcessMesh(mesh, nodeTransformForMesh, scene));
             }
 
             for (int i = 0; i < node->MNumChildren; i++)
                 ProcessNode(node->MChildren[i], global, scene);
+        }
+
+        private static void SetVertexBoneDataToDefault(ref Vertex vertex)
+        {
+            for (int i = 0; i < MAX_BONE_WEIGHTS; i++)
+            {
+                vertex.BoneIDs[i] = -1;
+                vertex.Weights[i] = 0.0f;
+            }
         }
 
         private Mesh ProcessMesh(Assimp.Mesh* mesh, Matrix4 global, Assimp.Scene* scene)
@@ -98,6 +128,9 @@ namespace GameStudies.Graphics
             {
                 Vertex vertex = new();
                 Vector3 vec3;
+
+                SetVertexBoneDataToDefault(ref vertex);
+
 
                 // positions
                 vec3.X = mesh->MVertices[i].X;
@@ -159,7 +192,81 @@ namespace GameStudies.Graphics
 
             }
 
+            ExtractBoneWeightForVertices(ref vertices, mesh, scene);
+
             return new Mesh(vertices.ToArray(), indices.ToArray(), textures.ToArray(), in global);
+        }
+
+        private static void SetVertexBoneData(ref Vertex vertex, int boneID, float weight)
+        {
+            for (int i = 0; i < MAX_BONE_WEIGHTS; ++i)
+            {
+                if (vertex.BoneIDs[i] < 0)
+                {
+                    vertex.Weights[i] = weight;
+                    vertex.BoneIDs[i] = boneID;
+                    break;
+                }
+            }
+        }
+
+        private void ExtractBoneWeightForVertices(ref List<Vertex> vertices, Assimp.Mesh* mesh, Assimp.Scene* scene)
+        {
+
+            for (int boneIndex = 0; boneIndex < mesh->MNumBones; ++boneIndex)
+            {
+                int boneID = -1;
+                string boneName = mesh->MBones[boneIndex]->MName;
+                if (!_boneInfoMap.TryGetValue(boneName, out var newBoneInfo))
+                {
+                    newBoneInfo.Id = _boneCounter;
+                    var offsetMatrix = mesh->MBones[boneIndex]->MOffsetMatrix.ToOpenTK();
+                    newBoneInfo.Offset = offsetMatrix;
+                    _boneInfoMap[boneName] = newBoneInfo;
+                    boneID = _boneCounter;
+                    _boneCounter++;
+                }
+                else
+                {
+                    boneID = _boneInfoMap[boneName].Id;
+                }
+                var weights = mesh->MBones[boneIndex]->MWeights;
+                int numWeights = (int)mesh->MBones[boneIndex]->MNumWeights;
+
+                for (int weightIndex = 0; weightIndex < numWeights; ++weightIndex)
+                {
+                    int vertexId = (int)weights[weightIndex].MVertexId;
+                    float weight = weights[weightIndex].MWeight;
+                    var v = vertices[vertexId];
+                    SetVertexBoneData(ref v, boneID, weight);
+                    vertices[vertexId] = v;
+                }
+            }
+
+            for (int i = 0; i < vertices.Count; i++)
+            {
+                var v = vertices[i];
+                NormalizeBoneWeights(ref v);
+                vertices[i] = v;
+            }
+        }
+
+        public static void NormalizeBoneWeights(ref Vertex v)
+        {
+            float total = v.Weights.X + v.Weights.Y + v.Weights.Z + v.Weights.W;
+
+            if (total > 0f)
+            {
+                v.Weights.X /= total;
+                v.Weights.Y /= total;
+                v.Weights.Z /= total;
+                v.Weights.W /= total;
+            }
+            else
+            {
+                // fallback: no weights assigned → give full weight to slot0
+                v.Weights = new Vector4(1, 0, 0, 0);
+            }
         }
 
         private List<Texture> LoadMaterialTextures(Assimp.Scene* scene, Assimp.Material* mat, Assimp.TextureType type, TextureType typeName)
