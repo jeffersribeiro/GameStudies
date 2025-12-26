@@ -33,11 +33,6 @@ namespace GameStudies.Core
         {
             base.OnLoad();
 
-            GL.Enable(EnableCap.DepthTest);
-            GL.DepthFunc(DepthFunction.Less);
-            GL.Enable(EnableCap.Blend);
-            GL.BlendFunc(BlendingFactor.SrcAlpha, BlendingFactor.OneMinusSrcAlpha);
-
             _camera = new Camera();
             _camera.AspectRatio = (float)ClientSize.X / ClientSize.Y;
 
@@ -99,9 +94,7 @@ namespace GameStudies.Core
         {
             base.OnRenderFrame(args);
 
-            GL.Enable(EnableCap.DepthTest);
-            GL.DepthFunc(DepthFunction.Less);
-            GL.DepthMask(true);
+            GL.ClearColor(0.05f, 0.05f, 0.05f, 1.0f);
             GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
 
             var view = _camera.ViewMatrix;
@@ -118,22 +111,17 @@ namespace GameStudies.Core
                 _shader.SetMat4($"finalBonesMatrices[{i}]", transforms[i]);
             }
 
-            _shader.SetFloat("material.shininess", 32.0f);
+            var Rotation = new Vector3();
 
+            var model =
+            Matrix4.CreateScale(Vector3.One)
+            * Matrix4.CreateRotationX(MathHelper.DegreesToRadians(Rotation.X))
+            * Matrix4.CreateRotationY(MathHelper.DegreesToRadians(Rotation.Y))
+            * Matrix4.CreateRotationZ(MathHelper.DegreesToRadians(Rotation.Z))
+            * Matrix4.CreateTranslation(Vector3.Zero);
+
+            _shader.SetMat4("model", model);
             _model.Draw(_shader);
-
-            GL.DepthFunc(DepthFunction.Lequal);
-            GL.Disable(EnableCap.CullFace);
-
-            GL.Enable(EnableCap.CullFace);
-            GL.CullFace(CullFaceMode.Back);
-            GL.FrontFace(FrontFaceDirection.Ccw);
-            GL.DepthFunc(DepthFunction.Less);
-
-            GL.Viewport(0, 0, ClientSize.X, ClientSize.Y);
-            GL.Clear(ClearBufferMask.ColorBufferBit);
-
-            GL.Enable(EnableCap.DepthTest);
 
             SwapBuffers();
         }

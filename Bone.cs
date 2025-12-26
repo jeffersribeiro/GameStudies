@@ -97,8 +97,6 @@ namespace GameStudies.Graphics
         }
 
         public Matrix4 GetLocalTransform() { return _LocalTransform; }
-        public Matrix4 GetRootInverseTransform() => _LocalTransform.Inverted();
-
         public string GetBoneName() { return _Name; }
         public int GetBoneID() { return _ID; }
 

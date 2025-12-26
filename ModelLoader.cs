@@ -11,15 +11,12 @@ namespace GameStudies.Graphics
 {
     public unsafe class Model : IDisposable
     {
-        public Vector3 Position = Vector3.Zero;
-        public Vector3 Rotation;
-        public Vector3 Scale = Vector3.One;
-
         readonly Assimp.Assimp assimp = Assimp.Assimp.GetApi();
         private readonly List<Mesh> _meshes = new();
         private readonly uint _flags = (uint)(
-        PostProcessSteps.Triangulate |
-        PostProcessSteps.FlipUVs);
+       PostProcessSteps.Triangulate |
+       PostProcessSteps.GenerateSmoothNormals |
+       PostProcessSteps.CalculateTangentSpace);
 
         private Dictionary<string, BoneInfo> _boneInfoMap = new();
         private int _boneCounter = 0;
@@ -39,15 +36,9 @@ namespace GameStudies.Graphics
 
         public void Draw(Shader shader)
         {
-            var model =
-            Matrix4.CreateScale(Scale)
-            * Matrix4.CreateRotationX(MathHelper.DegreesToRadians(Rotation.X))
-            * Matrix4.CreateRotationY(MathHelper.DegreesToRadians(Rotation.Y))
-            * Matrix4.CreateRotationZ(MathHelper.DegreesToRadians(Rotation.Z))
-            * Matrix4.CreateTranslation(Position);
 
             for (int i = 0; i < _meshes.Count; i++)
-                _meshes[i].Draw(shader, in model);
+                _meshes[i].Draw(shader);
         }
 
         public void Dispose()
@@ -70,7 +61,7 @@ namespace GameStudies.Graphics
             try
             {
                 _directory = fullpath.Substring(0, fullpath.LastIndexOfAny(new[] { '/', '\\' }));
-                ProcessNode(scene->MRootNode, Matrix4.Identity, scene);
+                ProcessNode(scene->MRootNode, scene);
             }
             finally
             {
@@ -79,34 +70,16 @@ namespace GameStudies.Graphics
             }
         }
 
-        private void ProcessNode(Assimp.Node* node, Matrix4 parentGlobal, Assimp.Scene* scene)
+        private void ProcessNode(Assimp.Node* node, Assimp.Scene* scene)
         {
-            Matrix4 local = node->MTransformation.ToOpenTK();
-            Matrix4 global = parentGlobal * local;
-
             for (int i = 0; i < node->MNumMeshes; i++)
             {
                 Assimp.Mesh* mesh = scene->MMeshes[node->MMeshes[i]];
-
-                // Skinned vs rigid:
-                Matrix4 nodeTransformForMesh;
-
-                if (mesh->MNumBones > 0)
-                {
-                    // Skinned mesh: DO NOT bake node transform, bones will handle it
-                    nodeTransformForMesh = Matrix4.Identity;
-                }
-                else
-                {
-                    // Rigid mesh: we still need the node global transform
-                    nodeTransformForMesh = global;
-                }
-
-                _meshes.Add(ProcessMesh(mesh, nodeTransformForMesh, scene));
+                _meshes.Add(ProcessMesh(mesh, scene));
             }
 
             for (int i = 0; i < node->MNumChildren; i++)
-                ProcessNode(node->MChildren[i], global, scene);
+                ProcessNode(node->MChildren[i], scene);
         }
 
         private static void SetVertexBoneDataToDefault(ref Vertex vertex)
@@ -118,7 +91,7 @@ namespace GameStudies.Graphics
             }
         }
 
-        private Mesh ProcessMesh(Assimp.Mesh* mesh, Matrix4 global, Assimp.Scene* scene)
+        private Mesh ProcessMesh(Assimp.Mesh* mesh, Assimp.Scene* scene)
         {
             List<Vertex> vertices = new();
             List<uint> indices = new();
@@ -127,42 +100,21 @@ namespace GameStudies.Graphics
             for (int i = 0; i < mesh->MNumVertices; i++)
             {
                 Vertex vertex = new();
-                Vector3 vec3;
+
+                vertex.Position = mesh->MVertices[i].ToOpenTK();
+                vertex.Normal = mesh->MNormals[i].ToOpenTK();
 
                 SetVertexBoneDataToDefault(ref vertex);
 
-
-                // positions
-                vec3.X = mesh->MVertices[i].X;
-                vec3.Y = mesh->MVertices[i].Y;
-                vec3.Z = mesh->MVertices[i].Z;
-                vertex.Position = vec3;
-
-                // normals (guard against null)
-                if (mesh->MNormals != null)
+                if (mesh->MTextureCoords[0] is not null)
                 {
-                    vec3.X = mesh->MNormals[i].X;
-                    vec3.Y = mesh->MNormals[i].Y;
-                    vec3.Z = mesh->MNormals[i].Z;
-                    vertex.Normal = vec3;
+                    Vector2 vec;
+                    vec.X = mesh->MTextureCoords[0][i].X;
+                    vec.Y = mesh->MTextureCoords[0][i].Y;
+                    vertex.TexCoords = vec;
                 }
                 else
-                {
-                    vertex.Normal = Vector3.UnitZ; // fallback; or compute later
-                }
-
-                // texcoords
-                if (mesh->MTextureCoords[0] != null)
-                {
-                    Vector2 vec2 = new();
-                    vec2.X = mesh->MTextureCoords[0][i].X;
-                    vec2.Y = mesh->MTextureCoords[0][i].Y;
-                    vertex.vUV = vec2;
-                }
-                else
-                {
-                    vertex.vUV = Vector2.Zero;
-                }
+                    vertex.TexCoords = new Vector2(0.0f, 0.0f);
 
                 vertices.Add(vertex);
             }
@@ -194,7 +146,7 @@ namespace GameStudies.Graphics
 
             ExtractBoneWeightForVertices(ref vertices, mesh, scene);
 
-            return new Mesh(vertices.ToArray(), indices.ToArray(), textures.ToArray(), in global);
+            return new Mesh(vertices.ToArray(), indices.ToArray(), textures.ToArray());
         }
 
         private static void SetVertexBoneData(ref Vertex vertex, int boneID, float weight)

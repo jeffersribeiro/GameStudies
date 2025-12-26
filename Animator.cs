@@ -32,7 +32,7 @@ namespace GameStudies.Core
                     _CurrentTime %= duration;
                     if (_CurrentTime < 0f) _CurrentTime += duration;
                 }
-                CalculateBoneTransform(ref _CurrentAnimation.GetRootNode(), Matrix4.Identity);
+                CalculateBoneTransform(_CurrentAnimation.GetRootNode(), Matrix4.Identity);
             }
         }
 
@@ -42,33 +42,36 @@ namespace GameStudies.Core
             _CurrentTime = 0.0f;
         }
 
-        public void CalculateBoneTransform(ref AssimpNodeData node, Matrix4 parentTransform)
+
+        private void CalculateBoneTransform(AssimpNodeData node, Matrix4 parentTransform)
         {
             string nodeName = node.Name;
             Matrix4 nodeTransform = node.Transformation;
 
-            Bone bone = _CurrentAnimation.FindBone(nodeName);
-
+            Bone? bone = _CurrentAnimation.FindBone(nodeName);
             if (bone != null)
             {
                 bone.Update(_CurrentTime);
                 nodeTransform = bone.GetLocalTransform();
             }
 
-            Matrix4 globalTransformation = nodeTransform * parentTransform;
+            Matrix4 globalTransformation = parentTransform * nodeTransform;
 
+            // Prefer TryGetValue to avoid double lookup
             var boneInfoMap = _CurrentAnimation.GetBoneIDMap();
-            if (boneInfoMap.TryGetValue(nodeName, out var boneInfo))
+            if (boneInfoMap.TryGetValue(nodeName, out BoneInfo info))
             {
-                _FinalBoneMatrices[boneInfo.Id] = boneInfo.Offset * globalTransformation;
+                int index = info.Id;
+                Matrix4 offset = info.Offset;
+
+                _FinalBoneMatrices[index] = globalTransformation * offset;
             }
+
+            // Recurse
+            if (node.Children == null) return;
 
             for (int i = 0; i < node.Children.Count; i++)
-            {
-                var children = node.Children[i];
-                CalculateBoneTransform(ref children, globalTransformation);
-                node.Children[i] = children;
-            }
+                CalculateBoneTransform(node.Children[i], globalTransformation);
         }
 
         public List<Matrix4> GetFinalBoneMatrices()
