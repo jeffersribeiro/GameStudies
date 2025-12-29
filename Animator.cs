@@ -64,7 +64,7 @@ namespace GameStudies.Core
                 int index = info.Id;
                 Matrix4 offset = info.Offset;
 
-                _FinalBoneMatrices[index] = globalTransformation * offset;
+                _FinalBoneMatrices[index] = _CurrentAnimation._GlobalInverseTransform * globalTransformation * offset;
             }
 
             // Recurse

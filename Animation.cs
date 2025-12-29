@@ -20,6 +20,8 @@ namespace GameStudies.Graphics
         private Dictionary<string, BoneInfo> _BoneInfoMap;
         readonly Assimp.Assimp assimp = Assimp.Assimp.GetApi();
 
+        public Matrix4 _GlobalInverseTransform;
+
         public Animation() { }
 
         public Animation(string animationPath, Model model)
@@ -36,6 +38,9 @@ namespace GameStudies.Graphics
             _TicksPerSecond = (int)animation->MTicksPerSecond;
             if (_TicksPerSecond <= 0) _TicksPerSecond = 25;
 
+
+            _GlobalInverseTransform =
+                scene->MRootNode->MTransformation.ToOpenTK().Inverted();
 
             ReadHeirarchyData(ref _RootNode, scene->MRootNode);
             ReadMissingBones(animation, ref model);
