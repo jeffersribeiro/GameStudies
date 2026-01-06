@@ -23,37 +23,11 @@ namespace GameStudies.Core
         private Graphics.Shader _shader = default!;
         private Camera _camera = default!;
 
-        private uint _vao, _vbo, _ebo;
+        private uint _emptyVao;
+        private float _angleY;
 
         private bool _rightMouseDown;
         private Vector2 _lastMousePos;
-
-        private float _angleY;
-
-        // 8 vertices (position only)
-        private static readonly float[] CubeVertices =
-        {
-            // x, y, z
-            -0.5f, -0.5f, -0.5f, // 0
-             0.5f, -0.5f, -0.5f, // 1
-             0.5f,  0.5f, -0.5f, // 2
-            -0.5f,  0.5f, -0.5f, // 3
-            -0.5f, -0.5f,  0.5f, // 4
-             0.5f, -0.5f,  0.5f, // 5
-             0.5f,  0.5f,  0.5f, // 6
-            -0.5f,  0.5f,  0.5f, // 7
-        };
-
-        // 12 triangles (36 indices)
-        private static readonly uint[] CubeIndices =
-        {
-            0, 1, 2,  0, 2, 3,
-            4, 5, 6,  4, 6, 7,
-            0, 3, 7,  0, 7, 4,
-            1, 5, 6,  1, 6, 2,
-            0, 4, 5,  0, 5, 1,
-            3, 2, 6,  3, 6, 7,
-        };
 
         public Game(int width, int height, string title)
         {
@@ -93,41 +67,24 @@ namespace GameStudies.Core
             };
             _mouse.Scroll += (_, wheel) => _camera.ProcessMouseScroll(wheel);
 
+            _gl.Enable(EnableCap.DepthTest);
+            _gl.DepthFunc(DepthFunction.Less);
+
+            _gl.Enable(EnableCap.CullFace);
+            _gl.CullFace(GLEnum.Back);
+            _gl.FrontFace(FrontFaceDirection.Ccw);
+
             _gl.ClearColor(0.12f, 0.18f, 0.25f, 1f);
 
-            // Camera
             _camera = new Camera();
             _camera.AspectRatio = _window.Size.X / (float)_window.Size.Y;
             _camera.Position = new Vector3(0f, 0f, 3.5f);
 
-            // Minimal shader
+            // Shaders below:
             _shader = new(_gl, "cube.vert", "cube.frag");
 
-            CreateCubeBuffers();
-        }
-
-        private unsafe void CreateCubeBuffers()
-        {
-            _vao = _gl.GenVertexArray();
-            _vbo = _gl.GenBuffer();
-            _ebo = _gl.GenBuffer();
-
-            _gl.BindVertexArray(_vao);
-
-            // VBO
-            _gl.BindBuffer(GLEnum.ArrayBuffer, _vbo);
-            _gl.BufferData<float>(GLEnum.ArrayBuffer, CubeVertices.AsSpan(), GLEnum.StaticDraw);
-
-            // EBO
-            _gl.BindBuffer(GLEnum.ElementArrayBuffer, _ebo);
-            _gl.BufferData<uint>(GLEnum.ElementArrayBuffer, CubeIndices.AsSpan(), GLEnum.StaticDraw);
-
-            // layout(location=0) => vec3 position
-            const uint stride = 3 * sizeof(float);
-            _gl.EnableVertexAttribArray(0);
-            _gl.VertexAttribPointer(0, 3, GLEnum.Float, false, stride, 0);
-
-            _gl.BindVertexArray(0);
+            // Empty VAO is required in core profile
+            _emptyVao = _gl.GenVertexArray();
         }
 
         private void OnResize(Vector2D<int> size)
@@ -151,7 +108,6 @@ namespace GameStudies.Core
                 _camera.ProcessMouseMovement(d);
             }
 
-            // spin so you can clearly see it
             _angleY += 0.9f * delta;
         }
 
@@ -173,8 +129,8 @@ namespace GameStudies.Core
 
             _shader.SetVec3("uColor", new Vector3(1f, 0.85f, 0.25f));
 
-            _gl.BindVertexArray(_vao);
-            _gl.DrawElements(GLEnum.Triangles, (uint)CubeIndices.Length, GLEnum.UnsignedInt, 0);
+            _gl.BindVertexArray(_emptyVao);
+            _gl.DrawArrays(GLEnum.Triangles, 0, 36); // 12 triangles * 3
             _gl.BindVertexArray(0);
         }
 
@@ -182,10 +138,7 @@ namespace GameStudies.Core
 
         public void Dispose()
         {
-            if (_ebo != 0) _gl.DeleteBuffer(_ebo);
-            if (_vbo != 0) _gl.DeleteBuffer(_vbo);
-            if (_vao != 0) _gl.DeleteVertexArray(_vao);
-
+            if (_emptyVao != 0) _gl.DeleteVertexArray(_emptyVao);
             _shader?.Delete();
         }
     }
