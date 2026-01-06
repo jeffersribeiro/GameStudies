@@ -1,13 +1,18 @@
-using OpenTK.Graphics.OpenGL4;
-using OpenTK.Mathematics;
+using Matrix4 = System.Numerics.Matrix4x4;
+using Vector4 = System.Numerics.Vector4;
+using Vector3 = System.Numerics.Vector3;
+using Silk.NET.OpenGL;
 
 namespace GameStudies.Graphics
 {
     public class Shader
     {
-        public int Prog { get; }
-        public Shader(string vertPath, string fragPath)
+        private GL _gl;
+
+        public uint Prog { get; }
+        public Shader(GL gl, string vertPath, string fragPath)
         {
+            _gl = gl;
             string baseDir = AppContext.BaseDirectory;
 
             string fullVertPath = Path.Combine(baseDir, DirPathNames.ShaderFolderName, vertPath);
@@ -16,85 +21,87 @@ namespace GameStudies.Graphics
             string vertCode = File.ReadAllText(fullVertPath);
             string fragCode = File.ReadAllText(fullFragPath);
 
-            int vert = GL.CreateShader(ShaderType.VertexShader);
-            GL.ShaderSource(vert, vertCode);
-            GL.CompileShader(vert);
-            GL.GetShader(vert, ShaderParameter.CompileStatus, out int vertStatus);
+            uint vert = _gl.CreateShader(ShaderType.VertexShader);
+            _gl.ShaderSource(vert, vertCode);
+            _gl.CompileShader(vert);
+            _gl.GetShader(vert, GLEnum.CompileStatus, out int vertStatus);
             if (vertStatus == 0)
             {
-                string info = GL.GetShaderInfoLog(vert);
+                string info = _gl.GetShaderInfoLog(vert);
                 throw new Exception($"Vert shader compilation failed:\n{info}");
             }
 
-            int frag = GL.CreateShader(ShaderType.FragmentShader);
-            GL.ShaderSource(frag, fragCode);
-            GL.CompileShader(frag);
-            GL.GetShader(frag, ShaderParameter.CompileStatus, out int fragStatus);
+            uint frag = _gl.CreateShader(ShaderType.FragmentShader);
+            _gl.ShaderSource(frag, fragCode);
+            _gl.CompileShader(frag);
+            _gl.GetShader(frag, GLEnum.CompileStatus, out int fragStatus);
             if (fragStatus == 0)
             {
-                string info = GL.GetShaderInfoLog(frag);
+                string info = _gl.GetShaderInfoLog(frag);
                 throw new Exception($"Fragment shader compilation failed:\n{info}");
             }
 
-            Prog = GL.CreateProgram();
+            Prog = _gl.CreateProgram();
 
-            GL.AttachShader(Prog, vert);
-            GL.AttachShader(Prog, frag);
-            GL.LinkProgram(Prog);
-            GL.GetProgram(Prog, GetProgramParameterName.LinkStatus, out int linkStatus);
+            _gl.AttachShader(Prog, vert);
+            _gl.AttachShader(Prog, frag);
+            _gl.LinkProgram(Prog);
+            _gl.GetProgram(Prog, GLEnum.LinkStatus, out int linkStatus);
             if (linkStatus == 0)
             {
-                string info = GL.GetProgramInfoLog(Prog);
+                string info = _gl.GetProgramInfoLog(Prog);
                 throw new Exception($"Shader program linking failed:\n{info}");
             }
-            GL.DetachShader(Prog, vert);
-            GL.DetachShader(Prog, frag);
-            GL.DeleteShader(vert);
-            GL.DeleteShader(frag);
+            _gl.DetachShader(Prog, vert);
+            _gl.DetachShader(Prog, frag);
+            _gl.DeleteShader(vert);
+            _gl.DeleteShader(frag);
 
         }
 
         public void Use()
         {
-            GL.UseProgram(Prog);
+            _gl.UseProgram(Prog);
         }
 
         public void Delete()
         {
-            GL.DeleteProgram(Prog);
+            _gl.DeleteProgram(Prog);
         }
 
         public void SetInt(string name, int value)
         {
-            GL.Uniform1(GL.GetUniformLocation(Prog, name), value);
+            _gl.Uniform1(_gl.GetUniformLocation(Prog, name), value);
         }
 
         public void SetBool(string name, bool value)
         {
-            GL.Uniform1(GL.GetUniformLocation(Prog, name), value ? 1 : 0);
+            _gl.Uniform1(_gl.GetUniformLocation(Prog, name), value ? 1 : 0);
         }
 
         public void SetFloat(string name, float value)
         {
-            GL.Uniform1(GL.GetUniformLocation(Prog, name), value);
+            _gl.Uniform1(_gl.GetUniformLocation(Prog, name), value);
         }
 
         public void SetVec3(string name, Vector3 v)
         {
-            int transformLoc = GL.GetUniformLocation(Prog, name);
-            GL.Uniform3(transformLoc, v);
+            int transformLoc = _gl.GetUniformLocation(Prog, name);
+            _gl.Uniform3(transformLoc, v);
         }
 
         public void SetVec4(string name, Vector4 v)
         {
-            int transformLoc = GL.GetUniformLocation(Prog, name);
-            GL.Uniform4(transformLoc, v);
+            int transformLoc = _gl.GetUniformLocation(Prog, name);
+            _gl.Uniform4(transformLoc, v);
         }
 
-        public void SetMat4(string name, Matrix4 m)
+        public unsafe void SetMat4(string name, Matrix4 m)
         {
-            int transformLoc = GL.GetUniformLocation(Prog, name);
-            GL.UniformMatrix4(transformLoc, false, ref m);
+            int loc = _gl.GetUniformLocation(Prog, name);
+            if (loc < 0) throw new Exception("loc not found");
+
+            _gl.UniformMatrix4(loc, 1, false, (float*)&m);
         }
 
     }

@@ -1,5 +1,7 @@
 using System.Diagnostics;
-using OpenTK.Mathematics;
+using Matrix4 = System.Numerics.Matrix4x4;
+using Vector3 = System.Numerics.Vector3;
+using Quaternion = System.Numerics.Quaternion;
 using Assimp = Silk.NET.Assimp;
 
 namespace GameStudies.Graphics
@@ -54,7 +56,7 @@ namespace GameStudies.Graphics
 
             for (int positionIndex = 0; positionIndex < _NumPositions; ++positionIndex)
             {
-                var aiPosition = channel->MPositionKeys[positionIndex].MValue.ToOpenTK();
+                var aiPosition = channel->MPositionKeys[positionIndex].MValue;
                 float timeStamp = (float)channel->MPositionKeys[positionIndex].MTime;
                 KeyPosition data;
                 data.Position = aiPosition;
@@ -65,7 +67,7 @@ namespace GameStudies.Graphics
             _NumRotations = (int)channel->MNumRotationKeys;
             for (int rotationIndex = 0; rotationIndex < _NumRotations; ++rotationIndex)
             {
-                var aiOrientation = channel->MRotationKeys[rotationIndex].MValue.ToOpenTK();
+                var aiOrientation = channel->MRotationKeys[rotationIndex].MValue;
                 float timeStamp = (float)channel->MRotationKeys[rotationIndex].MTime;
                 KeyRotation data;
                 data.Orientation = aiOrientation;
@@ -76,7 +78,7 @@ namespace GameStudies.Graphics
             _NumScalings = (int)channel->MNumScalingKeys;
             for (int keyIndex = 0; keyIndex < _NumScalings; ++keyIndex)
             {
-                var scale = channel->MScalingKeys[keyIndex].MValue.ToOpenTK();
+                var scale = channel->MScalingKeys[keyIndex].MValue;
                 float timeStamp = (float)channel->MScalingKeys[keyIndex].MTime;
                 KeyScale data;
                 data.Scale = scale;
@@ -97,7 +99,6 @@ namespace GameStudies.Graphics
         }
 
         public Matrix4 GetLocalTransform() { return _LocalTransform; }
-        public Matrix4 GetRootInverseTransform() => _LocalTransform.Inverted();
 
         public string GetBoneName() { return _Name; }
         public int GetBoneID() { return _ID; }
@@ -178,7 +179,7 @@ namespace GameStudies.Graphics
         {
             if (1 == _NumRotations)
             {
-                var rotation = _Rotations[0].Orientation.Normalized();
+                var rotation = _Rotations[0].Orientation;
                 return Matrix4.CreateFromQuaternion(rotation);
             }
 

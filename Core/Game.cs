@@ -1,237 +1,190 @@
-using OpenTK.Windowing.Common;
-using OpenTK.Windowing.Desktop;
-using OpenTK.Graphics.OpenGL4;
-using OpenTK.Mathematics;
-using OpenTK.Windowing.GraphicsLibraryFramework;
+using Silk.NET.Input;
+using Silk.NET.Maths;
+using Silk.NET.OpenGL;
+using Silk.NET.Windowing;
 
 using GameStudies.Graphics;
-using GameStudies.Objects;
+
+using Matrix4 = System.Numerics.Matrix4x4;
+using Vector3 = System.Numerics.Vector3;
+using Vector2 = System.Numerics.Vector2;
 
 namespace GameStudies.Core
 {
-    public class Game : GameWindow
+    public sealed class Game : IDisposable
     {
-        private Shader _shader = default!;
+        private readonly IWindow _window;
+        private GL _gl = default!;
+
+        private IInputContext _input = default!;
+        private IKeyboard _keyboard = default!;
+        private IMouse _mouse = default!;
+
+        private Graphics.Shader _shader = default!;
         private Camera _camera = default!;
 
-        private Framebuffer _fbo = default!;
-        private ScreenQuad _quad = default!;
-        private Shader _postShader = default!;
-
-        private Skybox _skybox;
-
-        private Model _model = default!;
-        private Animator _animator = default!;
-        private Light _light1 = new();
-        private Light _light2 = new();
-        private Light _light3 = new();
-        private CubeObject cube;
-        private SquareObject square1;
-        private SquareObject square2;
+        private uint _vao, _vbo, _ebo;
 
         private bool _rightMouseDown;
         private Vector2 _lastMousePos;
-        private bool _autoRotate = true;
-        private Vector3 _cubePos = Vector3.Zero;
-        private float _cubeScale = 1.0f;
-        private float _cubeSpeed = 1.5f;
+
+        private float _angleY;
+
+        // 8 vertices (position only)
+        private static readonly float[] CubeVertices =
+        {
+            // x, y, z
+            -0.5f, -0.5f, -0.5f, // 0
+             0.5f, -0.5f, -0.5f, // 1
+             0.5f,  0.5f, -0.5f, // 2
+            -0.5f,  0.5f, -0.5f, // 3
+            -0.5f, -0.5f,  0.5f, // 4
+             0.5f, -0.5f,  0.5f, // 5
+             0.5f,  0.5f,  0.5f, // 6
+            -0.5f,  0.5f,  0.5f, // 7
+        };
+
+        // 12 triangles (36 indices)
+        private static readonly uint[] CubeIndices =
+        {
+            0, 1, 2,  0, 2, 3,
+            4, 5, 6,  4, 6, 7,
+            0, 3, 7,  0, 7, 4,
+            1, 5, 6,  1, 6, 2,
+            0, 4, 5,  0, 5, 1,
+            3, 2, 6,  3, 6, 7,
+        };
 
         public Game(int width, int height, string title)
-            : base(
-                GameWindowSettings.Default,
-                new NativeWindowSettings
+        {
+            var opts = WindowOptions.Default;
+            opts.Title = title;
+            opts.Size = new Vector2D<int>(width, height);
+
+            _window = Window.Create(opts);
+            _window.Load += OnLoad;
+            _window.Update += OnUpdate;
+            _window.Render += OnRender;
+            _window.Resize += OnResize;
+            _window.Closing += OnClosing;
+        }
+
+        public void Run() => _window.Run();
+
+        private void OnLoad()
+        {
+            _gl = GL.GetApi(_window);
+
+            _input = _window.CreateInput();
+            _keyboard = _input.Keyboards.Count > 0 ? _input.Keyboards[0] : throw new InvalidOperationException("No keyboard found.");
+            _mouse = _input.Mice.Count > 0 ? _input.Mice[0] : throw new InvalidOperationException("No mouse found.");
+
+            _mouse.MouseDown += (_, btn) =>
+            {
+                if (btn == MouseButton.Right)
                 {
-                    Size = new Vector2i(width, height),
-                    Title = title,
-                })
-        {
-        }
+                    _rightMouseDown = true;
+                    _lastMousePos = _mouse.Position;
+                }
+            };
+            _mouse.MouseUp += (_, btn) =>
+            {
+                if (btn == MouseButton.Right) _rightMouseDown = false;
+            };
+            _mouse.Scroll += (_, wheel) => _camera.ProcessMouseScroll(wheel);
 
-        protected override void OnLoad()
-        {
-            base.OnLoad();
+            _gl.ClearColor(0.12f, 0.18f, 0.25f, 1f);
 
-            GL.Enable(EnableCap.DepthTest);
-            GL.DepthFunc(DepthFunction.Less);
-            GL.Enable(EnableCap.Blend);
-            GL.BlendFunc(BlendingFactor.SrcAlpha, BlendingFactor.OneMinusSrcAlpha);
-
+            // Camera
             _camera = new Camera();
-            _camera.AspectRatio = (float)ClientSize.X / ClientSize.Y;
+            _camera.AspectRatio = _window.Size.X / (float)_window.Size.Y;
+            _camera.Position = new Vector3(0f, 0f, 3.5f);
 
+            // Minimal shader
+            _shader = new(_gl, "cube.vert", "cube.frag");
 
-            string[] faces = [
-                "skybox/right.jpg",
-                "skybox/left.jpg",
-                "skybox/top.jpg",
-                "skybox/bottom.jpg",
-                "skybox/front.jpg",
-                "skybox/back.jpg"
-            ];
-
-            _skybox = new(faces);
-
-            _fbo = new(ClientSize.X, ClientSize.Y);
-            _quad = new();
-            _postShader = new("post.vert", "post.frag");
-
-            var vertPath = "light.vert";
-            var fragPath = "light.frag";
-            _shader = new Shader(vertPath, fragPath);
-
-            _model = new Model("TinySword/Characters/gltf/Knight.glb");
-            Animation danceAnimation = new("TinySword/Characters/gltf/Knight.glb", _model);
-            _animator = new(danceAnimation);
-
-            cube = new(Helpers.GenRandomPosition());
-            square1 = new(Helpers.GenRandomPosition());
-            square2 = new(Helpers.GenRandomPosition());
-
-            square2.Rotation = new(1.0f, 0, 0);
-
-            _light1.Type = LightType.Point;
-            _light2.Type = LightType.Spot;
-            _light3.Type = LightType.Directional;
-
-            _light2.Specular = new(1.0f, 1.0f, 1.0f);
-            _light2.Ambient = new(1.0f, 1.0f, 1.0f);
-            _light2.Direction = new(1.0f, 1.0f, 1.0f);
-
+            CreateCubeBuffers();
         }
 
-        protected override void OnResize(ResizeEventArgs e)
+        private unsafe void CreateCubeBuffers()
         {
-            base.OnResize(e);
-            GL.Viewport(0, 0, e.Width, e.Height);
-            _fbo.Resize(e.Width, e.Height);
+            _vao = _gl.GenVertexArray();
+            _vbo = _gl.GenBuffer();
+            _ebo = _gl.GenBuffer();
+
+            _gl.BindVertexArray(_vao);
+
+            // VBO
+            _gl.BindBuffer(GLEnum.ArrayBuffer, _vbo);
+            _gl.BufferData<float>(GLEnum.ArrayBuffer, CubeVertices.AsSpan(), GLEnum.StaticDraw);
+
+            // EBO
+            _gl.BindBuffer(GLEnum.ElementArrayBuffer, _ebo);
+            _gl.BufferData<uint>(GLEnum.ElementArrayBuffer, CubeIndices.AsSpan(), GLEnum.StaticDraw);
+
+            // layout(location=0) => vec3 position
+            const uint stride = 3 * sizeof(float);
+            _gl.EnableVertexAttribArray(0);
+            _gl.VertexAttribPointer(0, 3, GLEnum.Float, false, stride, 0);
+
+            _gl.BindVertexArray(0);
         }
 
-        protected override void OnMouseDown(MouseButtonEventArgs e)
+        private void OnResize(Vector2D<int> size)
         {
-            if (e.Button == MouseButton.Right && e.IsPressed)
-            {
-                _rightMouseDown = true;
-                _lastMousePos = MouseState.Position;
-            }
+            if (_shader?.Prog == 0) return;
+            _gl.Viewport(0, 0, (uint)size.X, (uint)size.Y);
+            _camera.AspectRatio = size.X / (float)size.Y;
         }
 
-        protected override void OnMouseUp(MouseButtonEventArgs e)
+        private void OnUpdate(double dt)
         {
-            if (e.Button == MouseButton.Right && !e.IsPressed)
-            {
-                _rightMouseDown = false;
-            }
-        }
+            float delta = (float)dt;
 
-        protected override void OnMouseWheel(MouseWheelEventArgs e)
-        {
-            _camera.ProcessMouseScroll(e.Offset);
-        }
-
-        protected override void OnUpdateFrame(FrameEventArgs e)
-        {
-            var kb = KeyboardState;
-            _camera.ProcessKeyboard(kb, (float)e.Time);
-            square1.ProcessKeyboard(kb, (float)e.Time);
-
-            _animator.UpdateAnimation((float)e.Time);
+            _camera.ProcessKeyboard(_keyboard, delta);
 
             if (_rightMouseDown)
             {
-                var pos = MouseState.Position;
-                var delta = pos - _lastMousePos;
+                var pos = _mouse.Position;
+                var d = pos - _lastMousePos;
                 _lastMousePos = pos;
-                _camera.ProcessMouseMovement(delta);
+                _camera.ProcessMouseMovement(d);
             }
+
+            // spin so you can clearly see it
+            _angleY += 0.9f * delta;
         }
 
-        protected override void OnRenderFrame(FrameEventArgs args)
+        private void OnRender(double dt)
         {
-            base.OnRenderFrame(args);
-
-            _fbo.Bind();
-            GL.Enable(EnableCap.DepthTest);
-            GL.DepthFunc(DepthFunction.Less);
-            GL.DepthMask(true);
-            GL.Viewport(0, 0, _fbo.Width, _fbo.Height);
-            GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
-
-            var view = _camera.ViewMatrix;
-            var proj = _camera.ProjectionMatrix;
+            _gl.BindFramebuffer(GLEnum.Framebuffer, 0);
+            _gl.Viewport(0, 0, (uint)_window.Size.X, (uint)_window.Size.Y);
+            _gl.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
 
             _shader.Use();
-            _shader.SetMat4("view", view);
-            _shader.SetMat4("projection", proj);
-            _shader.SetVec3("viewPos", _camera.Position);
 
-            var transforms = _animator.GetFinalBoneMatrices();
-            for (int i = 0; i < transforms.Count; ++i)
-            {
-                _shader.SetMat4($"finalBonesMatrices[{i}]", transforms[i]);
-            }
+            var model =
+                Matrix4.CreateRotationY(_angleY) *
+                Matrix4.CreateRotationX(0.35f);
 
-            _shader.SetFloat("material.shininess", 32.0f);
+            _shader.SetMat4("model", model);
+            _shader.SetMat4("view", _camera.ViewMatrix);
+            _shader.SetMat4("projection", _camera.ProjectionMatrix);
 
-            _light1.Diffuse = new(1.0f, 0, 0);
+            _shader.SetVec3("uColor", new Vector3(1f, 0.85f, 0.25f));
 
-            _model.Draw(_shader);
-            cube.Draw(_shader);
-
-            var transparentObjects = new List<SquareObject> { square1, square2 };
-
-            transparentObjects = transparentObjects
-            .OrderByDescending(sq => (_camera.Position - sq.Position).Length)
-            .ToList();
-
-            foreach (var sq in transparentObjects)
-            {
-                sq.Draw(_shader);
-            }
-
-            _light2.Position = cube.Position;
-
-            _light1.Apply(_shader, 0);
-            _light2.Apply(_shader, 1);
-            //_light3.Apply(_shader, 2);
-
-            GL.DepthFunc(DepthFunction.Lequal);
-            GL.Disable(EnableCap.CullFace);
-
-            _skybox.Draw(_camera.ViewMatrix, _camera.ProjectionMatrix);
-
-            GL.Enable(EnableCap.CullFace);
-            GL.CullFace(CullFaceMode.Back);
-            GL.FrontFace(FrontFaceDirection.Ccw);
-            GL.DepthFunc(DepthFunction.Less);
-
-            Framebuffer.BindDefault();
-            GL.Viewport(0, 0, ClientSize.X, ClientSize.Y);
-            GL.Clear(ClearBufferMask.ColorBufferBit);
-
-            GL.Disable(EnableCap.DepthTest);
-            _postShader.Use();
-            GL.ActiveTexture(TextureUnit.Texture0);
-            GL.BindTexture(TextureTarget.Texture2D, _fbo.ColorTex);
-            _postShader.SetInt("sceneTex", 0);
-
-            _quad.Draw();
-            GL.Enable(EnableCap.DepthTest);
-
-            SwapBuffers();
+            _gl.BindVertexArray(_vao);
+            _gl.DrawElements(GLEnum.Triangles, (uint)CubeIndices.Length, GLEnum.UnsignedInt, 0);
+            _gl.BindVertexArray(0);
         }
 
-        protected override void OnUnload()
+        private void OnClosing() => Dispose();
+
+        public void Dispose()
         {
-            base.OnUnload();
-
-            _model?.Dispose();
-            cube.Dispose();
-            square1.Dispose();
-            square2.Dispose();
-
-            _postShader?.Delete();
-            _quad?.Dispose();
-            _fbo?.Dispose();
+            if (_ebo != 0) _gl.DeleteBuffer(_ebo);
+            if (_vbo != 0) _gl.DeleteBuffer(_vbo);
+            if (_vao != 0) _gl.DeleteVertexArray(_vao);
 
             _shader?.Delete();
         }

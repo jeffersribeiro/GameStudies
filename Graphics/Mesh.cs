@@ -1,13 +1,16 @@
+using Matrix4 = System.Numerics.Matrix4x4;
+using Vector4 = System.Numerics.Vector4;
+using Vector4i = System.Numerics.Vector4;
+using Vector3 = System.Numerics.Vector3;
+using Vector2 = System.Numerics.Vector2;
+using Silk.NET.OpenGL;
 using System.Runtime.InteropServices;
-using OpenTK.Graphics.OpenGL4;
-using OpenTK.Mathematics;
 
 namespace GameStudies.Graphics
 {
     public enum TextureType { Diffuse, Specular, Normal, Height }
 
-    [StructLayout(LayoutKind.Sequential, Pack = 1)]
-    public unsafe struct Vertex
+    public struct Vertex
     {
         // position
         public Vector3 Position;
@@ -36,16 +39,16 @@ namespace GameStudies.Graphics
 
     public class Mesh
     {
+        private readonly GL _gl;
         private readonly Vertex[] _vertices;
         private readonly uint[] _indices;
         private readonly Texture[] _textures;
-        private readonly Matrix4 _nodeTransform;
 
-        private int _vao, _vbo, _ebo;
+        private uint _vao, _vbo, _ebo;
 
-        public Mesh(Vertex[] vertices, uint[] indices, Texture[] textures, in Matrix4 nodeTransform)
+        public Mesh(GL gl, Vertex[] vertices, uint[] indices, Texture[] textures)
         {
-            _nodeTransform = nodeTransform;
+            _gl = gl;
             _vertices = vertices;
             _textures = textures;
             _indices = indices;
@@ -56,15 +59,15 @@ namespace GameStudies.Graphics
         public void Draw(Shader shader, in Matrix4 modelFromEntity)
         {
             int diffuseNr = 0, specularNr = 0, normalNr = 0, heightNr = 0;
-
-            Matrix4 model = modelFromEntity * _nodeTransform;
             shader.Use();
+
+            Matrix4 model = modelFromEntity; // sem _nodeTransform
             shader.SetMat4("model", model);
 
             for (int i = 0; i < _textures.Length; i++)
             {
 
-                GL.ActiveTexture(TextureUnit.Texture0 + i);
+                _gl.ActiveTexture(TextureUnit.Texture0 + i);
 
                 string? uname = null;
                 switch (_textures[i].Type)
@@ -80,82 +83,86 @@ namespace GameStudies.Graphics
                 }
 
                 if (uname != null) shader.SetInt(uname, i);
-                GL.BindTexture(TextureTarget.Texture2D, _textures[i].Id);
+                _gl.BindTexture(TextureTarget.Texture2D, _textures[i].Id);
             }
 
             shader.SetInt("uDiffuseCount", diffuseNr);
             shader.SetInt("uSpecularCount", specularNr);
 
-            GL.BindVertexArray(_vao);
-            GL.DrawElements(PrimitiveType.Triangles, _indices.Length, DrawElementsType.UnsignedInt, 0);
-            GL.BindVertexArray(0);
+            _gl.BindVertexArray(_vao);
+            _gl.DrawElements(GLEnum.Triangles, (uint)_indices.Length, DrawElementsType.UnsignedInt, 0);
+            _gl.BindVertexArray(0);
 
-            GL.ActiveTexture(TextureUnit.Texture0);
+            _gl.ActiveTexture(GLEnum.Texture0);
         }
 
         public unsafe void SetupMesh()
         {
-            _vao = GL.GenVertexArray();
-            _vbo = GL.GenBuffer();
-            _ebo = GL.GenBuffer();
+            _vao = _gl.GenVertexArray();
+            _vbo = _gl.GenBuffer();
+            _ebo = _gl.GenBuffer();
 
-            int stride = sizeof(Vertex);
+            uint stride = (uint)sizeof(Vertex);
 
-            nint off(string field) => Marshal.OffsetOf<Vertex>(field);
+            static nint off(string field) => Marshal.OffsetOf<Vertex>(field);
 
-            GL.BindVertexArray(_vao);
+            _gl.BindVertexArray(_vao);
 
-            GL.BindBuffer(BufferTarget.ArrayBuffer, _vbo);
-            GL.BufferData(BufferTarget.ArrayBuffer, _vertices.Length * stride, _vertices, BufferUsageHint.StaticDraw);
+            _gl.BindBuffer(GLEnum.ArrayBuffer, _vbo);
+            _gl.BufferData<Vertex>(GLEnum.ArrayBuffer, _vertices.AsSpan(), GLEnum.StaticDraw);
 
-            GL.BindBuffer(BufferTarget.ElementArrayBuffer, _ebo);
-            GL.BufferData(BufferTarget.ElementArrayBuffer, _indices.Length * sizeof(uint), _indices, BufferUsageHint.StaticDraw);
+            _gl.BindBuffer(GLEnum.ElementArrayBuffer, _ebo);
+            _gl.BufferData<uint>(GLEnum.ElementArrayBuffer, (uint)(_indices.Length * sizeof(uint)), _indices, GLEnum.StaticDraw);
 
             // vertex Positions
-            GL.EnableVertexAttribArray(0);
-            GL.VertexAttribPointer(0, 3, VertexAttribPointerType.Float, false, stride, off(nameof(Vertex.Position)));
+            _gl.EnableVertexAttribArray(0);
+            _gl.VertexAttribPointer(0, 3, GLEnum.Float, false, stride, off(nameof(Vertex.Position)));
 
             // vertex normals
-            GL.EnableVertexAttribArray(1);
-            GL.VertexAttribPointer(1, 3, VertexAttribPointerType.Float, false, stride, off(nameof(Vertex.Normal)));
-
+            _gl.EnableVertexAttribArray(1);
+            _gl.VertexAttribPointer(1, 3, GLEnum.Float, false, stride, off(nameof(Vertex.Normal)));
             // vertex colors
-            GL.EnableVertexAttribArray(2);
-            GL.VertexAttribPointer(2, 3, VertexAttribPointerType.Float, false, stride, off(nameof(Vertex.Color)));
+            _gl.EnableVertexAttribArray(2);
+            _gl.VertexAttribPointer(2, 3, GLEnum.Float, false, stride, off(nameof(Vertex.Color)));
 
             // vertex texture coords
-            GL.EnableVertexAttribArray(3);
-            GL.VertexAttribPointer(3, 2, VertexAttribPointerType.Float, false, stride, off(nameof(Vertex.vUV)));
+            _gl.EnableVertexAttribArray(3);
+            _gl.VertexAttribPointer(3, 2, GLEnum.Float, false, stride, off(nameof(Vertex.vUV)));
 
             // vertex tangent
-            GL.EnableVertexAttribArray(4);
-            GL.VertexAttribPointer(4, 3, VertexAttribPointerType.Float, false, stride, off(nameof(Vertex.Tangent)));
+            _gl.EnableVertexAttribArray(4);
+            _gl.VertexAttribPointer(4, 3, GLEnum.Float, false, stride, off(nameof(Vertex.Tangent)));
 
             // vertex bitangent
-            GL.EnableVertexAttribArray(5);
-            GL.VertexAttribPointer(5, 3, VertexAttribPointerType.Float, false, stride, off(nameof(Vertex.Bitangent)));
+            _gl.EnableVertexAttribArray(5);
+            _gl.VertexAttribPointer(5, 3, GLEnum.Float, false, stride, off(nameof(Vertex.Bitangent)));
             // ids
-            GL.EnableVertexAttribArray(6);
-            GL.VertexAttribIPointer(6, 4, VertexAttribIntegerType.Int, stride, off(nameof(Vertex.BoneIDs)));
+            _gl.EnableVertexAttribArray(6);
+            _gl.VertexAttribIPointer(6, 4, GLEnum.Int, stride, off(nameof(Vertex.BoneIDs)));
 
             // weights
-            GL.EnableVertexAttribArray(7);
-            GL.VertexAttribPointer(7, 4, VertexAttribPointerType.Float, false, stride, off(nameof(Vertex.Weights)));
+            _gl.EnableVertexAttribArray(7);
+            _gl.VertexAttribPointer(7, 4, GLEnum.Float, false, stride, off(nameof(Vertex.Weights)));
 
-            GL.BindVertexArray(0);
+            _gl.BindVertexArray(0);
         }
 
         public void Dispose()
         {
-            if (_textures.Length > 0)
+            if (_textures is { Length: > 0 })
             {
-                var textureIds = _textures.Select(t => (int)t.Id).Where(id => id != 0).ToArray();
-                if (textureIds.Length > 0) GL.DeleteTextures(textureIds.Length, textureIds);
+                uint[] ids = _textures
+                    .Select(t => t.Id)
+                    .Where(id => id != 0)
+                    .ToArray();
+
+                if (ids.Length > 0)
+                    _gl.DeleteTextures(ids);
             }
 
-            GL.DeleteVertexArrays(1, ref _vao);
-            GL.DeleteBuffers(1, ref _vbo);
-            GL.DeleteBuffers(1, ref _ebo);
+            _gl.DeleteVertexArrays(1, ref _vao);
+            _gl.DeleteBuffers(1, ref _vbo);
+            _gl.DeleteBuffers(1, ref _ebo);
         }
     }
 }

@@ -1,16 +1,20 @@
-using System;
-using System.Collections.Generic;
-using System.IO;
+using Matrix4 = System.Numerics.Matrix4x4;
+using Vector3 = System.Numerics.Vector3;
+using Vector4 = System.Numerics.Vector4;
+using Vector4i = System.Numerics.Vector4;
+using Vector2 = System.Numerics.Vector2;
+
 using System.Runtime.InteropServices;
-using OpenTK.Graphics.OpenGL4;
-using OpenTK.Mathematics;
-using Silk.NET.Assimp;
+
 using Assimp = Silk.NET.Assimp;
+using Silk.NET.Assimp;
+using Silk.NET.OpenGL;
 
 namespace GameStudies.Graphics
 {
     public unsafe class Model : IDisposable
     {
+        private readonly GL _gl;
         public Vector3 Position = Vector3.Zero;
         public Vector3 Rotation;
         public Vector3 Scale = Vector3.One;
@@ -32,19 +36,20 @@ namespace GameStudies.Graphics
         private readonly List<Texture> _texturesLoaded = new();
         private string _directory = string.Empty;
 
-        public Model(string path)
+        public Model(GL gl, string path)
         {
+            _gl = gl;
             LoadModel(path);
         }
 
         public void Draw(Shader shader)
         {
             var model =
-            Matrix4.CreateScale(Scale)
+            Matrix4.CreateTranslation(Position)
             * Matrix4.CreateRotationX(MathHelper.DegreesToRadians(Rotation.X))
             * Matrix4.CreateRotationY(MathHelper.DegreesToRadians(Rotation.Y))
             * Matrix4.CreateRotationZ(MathHelper.DegreesToRadians(Rotation.Z))
-            * Matrix4.CreateTranslation(Position);
+            * Matrix4.CreateScale(Scale);
 
             for (int i = 0; i < _meshes.Count; i++)
                 _meshes[i].Draw(shader, in model);
@@ -70,7 +75,7 @@ namespace GameStudies.Graphics
             try
             {
                 _directory = fullpath.Substring(0, fullpath.LastIndexOfAny(new[] { '/', '\\' }));
-                ProcessNode(scene->MRootNode, Matrix4.Identity, scene);
+                ProcessNode(scene->MRootNode, scene);
             }
             finally
             {
@@ -79,46 +84,29 @@ namespace GameStudies.Graphics
             }
         }
 
-        private void ProcessNode(Assimp.Node* node, Matrix4 parentGlobal, Assimp.Scene* scene)
+        private void ProcessNode(Assimp.Node* node, Assimp.Scene* scene)
         {
-            Matrix4 local = node->MTransformation.ToOpenTK();
-            Matrix4 global = parentGlobal * local;
-
             for (int i = 0; i < node->MNumMeshes; i++)
             {
                 Assimp.Mesh* mesh = scene->MMeshes[node->MMeshes[i]];
 
-                // Skinned vs rigid:
-                Matrix4 nodeTransformForMesh;
-
-                if (mesh->MNumBones > 0)
-                {
-                    // Skinned mesh: DO NOT bake node transform, bones will handle it
-                    nodeTransformForMesh = Matrix4.Identity;
-                }
-                else
-                {
-                    // Rigid mesh: we still need the node global transform
-                    nodeTransformForMesh = global;
-                }
-
-                _meshes.Add(ProcessMesh(mesh, nodeTransformForMesh, scene));
+                _meshes.Add(ProcessMesh(mesh, scene));
             }
 
             for (int i = 0; i < node->MNumChildren; i++)
-                ProcessNode(node->MChildren[i], global, scene);
+                ProcessNode(node->MChildren[i], scene);
         }
 
         private static void SetVertexBoneDataToDefault(ref Vertex vertex)
         {
             for (int i = 0; i < MAX_BONE_WEIGHTS; i++)
             {
-                vertex.BoneIDs[i] = -1;
-                vertex.Weights[i] = 0.0f;
+                SetWeight(ref vertex.Weights, i, 0.0f);
+                SetBoneIds(ref vertex.BoneIDs, i, -1);
             }
         }
 
-        private Mesh ProcessMesh(Assimp.Mesh* mesh, Matrix4 global, Assimp.Scene* scene)
+        private Mesh ProcessMesh(Assimp.Mesh* mesh, Assimp.Scene* scene)
         {
             List<Vertex> vertices = new();
             List<uint> indices = new();
@@ -130,7 +118,6 @@ namespace GameStudies.Graphics
                 Vector3 vec3;
 
                 SetVertexBoneDataToDefault(ref vertex);
-
 
                 // positions
                 vec3.X = mesh->MVertices[i].X;
@@ -194,7 +181,7 @@ namespace GameStudies.Graphics
 
             ExtractBoneWeightForVertices(ref vertices, mesh, scene);
 
-            return new Mesh(vertices.ToArray(), indices.ToArray(), textures.ToArray(), in global);
+            return new Mesh(_gl, vertices.ToArray(), indices.ToArray(), textures.ToArray());
         }
 
         private static void SetVertexBoneData(ref Vertex vertex, int boneID, float weight)
@@ -203,10 +190,33 @@ namespace GameStudies.Graphics
             {
                 if (vertex.BoneIDs[i] < 0)
                 {
-                    vertex.Weights[i] = weight;
-                    vertex.BoneIDs[i] = boneID;
+                    SetWeight(ref vertex.Weights, i, weight);
+                    SetBoneIds(ref vertex.BoneIDs, i, boneID);
                     break;
                 }
+            }
+        }
+
+        static void SetWeight(ref Vector4 w, int i, float value)
+        {
+            switch (i)
+            {
+                case 0: w.X = value; break;
+                case 1: w.Y = value; break;
+                case 2: w.Z = value; break;
+                case 3: w.W = value; break;
+                default: throw new ArgumentOutOfRangeException(nameof(i));
+            }
+        }
+        static void SetBoneIds(ref Vector4i w, int i, int value)
+        {
+            switch (i)
+            {
+                case 0: w.X = value; break;
+                case 1: w.Y = value; break;
+                case 2: w.Z = value; break;
+                case 3: w.W = value; break;
+                default: throw new ArgumentOutOfRangeException(nameof(i));
             }
         }
 
@@ -323,7 +333,7 @@ namespace GameStudies.Graphics
 
                         texture = new Texture
                         {
-                            Id = (uint)TextureFromEmbedded(emb),
+                            Id = TextureFromEmbedded(emb),
                             Type = typeName,
                             Path = pathStr
                         };
@@ -347,35 +357,35 @@ namespace GameStudies.Graphics
             return textures;
         }
 
-        private static int TextureFromFile(string filename, string directory)
+        private uint TextureFromFile(string filename, string directory)
         {
             // Build a portable path: directory of the model + texture filename
             string filepath = Path.Combine(directory, filename);
 
-            int textureId = GL.GenTexture();
-            GL.BindTexture(TextureTarget.Texture2D, textureId);
+            var textureId = _gl.GenTexture();
+            _gl.BindTexture(GLEnum.Texture2D, textureId);
 
             // StbImageSharp.StbImage.stbi_set_flip_vertically_on_load(1);
 
             using var stream = System.IO.File.OpenRead(filepath);
             var image = StbImageSharp.ImageResult.FromStream(stream, StbImageSharp.ColorComponents.RedGreenBlueAlpha);
 
-            GL.TexImage2D(TextureTarget.Texture2D, 0, PixelInternalFormat.Rgba, image.Width, image.Height, 0, PixelFormat.Rgba, PixelType.UnsignedByte, image.Data);
-            GL.GenerateMipmap(GenerateMipmapTarget.Texture2D);
+            _gl.TexImage2D<byte>(GLEnum.Texture2D, 0, (int)GLEnum.Rgba, (uint)image.Width, (uint)image.Height, 0, GLEnum.Rgba, GLEnum.UnsignedByte, image.Data);
+            _gl.GenerateMipmap(GLEnum.Texture2D);
 
             // reasonable defaults
-            GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureWrapS, (int)OpenTK.Graphics.OpenGL4.TextureWrapMode.Repeat);
-            GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureWrapT, (int)OpenTK.Graphics.OpenGL4.TextureWrapMode.Repeat);
-            GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMinFilter, (int)TextureMinFilter.LinearMipmapLinear);
-            GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMagFilter, (int)TextureMagFilter.Linear);
+            _gl.TexParameter(GLEnum.Texture2D, GLEnum.TextureWrapS, (int)GLEnum.Repeat);
+            _gl.TexParameter(GLEnum.Texture2D, GLEnum.TextureWrapT, (int)GLEnum.Repeat);
+            _gl.TexParameter(GLEnum.Texture2D, GLEnum.TextureMinFilter, (int)GLEnum.LinearMipmapLinear);
+            _gl.TexParameter(GLEnum.Texture2D, GLEnum.TextureMagFilter, (int)GLEnum.Linear);
 
             return textureId;
         }
 
-        private static int TextureFromEmbedded(Assimp.Texture* emb)
+        private uint TextureFromEmbedded(Assimp.Texture* emb)
         {
-            int textureId = GL.GenTexture();
-            GL.BindTexture(TextureTarget.Texture2D, textureId);
+            var textureId = _gl.GenTexture();
+            _gl.BindTexture(GLEnum.Texture2D, textureId);
 
             if (emb->MHeight != 0)
             {
@@ -390,8 +400,7 @@ namespace GameStudies.Graphics
                 // emb->PCData é Texel*, copiamos como stream de bytes
                 Marshal.Copy((IntPtr)emb->PcData, pixelData, 0, size);
 
-                GL.TexImage2D(TextureTarget.Texture2D, 0, PixelInternalFormat.Rgba,
-                    width, height, 0, PixelFormat.Rgba, PixelType.UnsignedByte, pixelData);
+                _gl.TexImage2D<byte>(GLEnum.Texture2D, 0, (int)GLEnum.Rgba, (uint)width, (uint)height, 0, GLEnum.Rgba, GLEnum.UnsignedByte, pixelData);
             }
             else
             {
@@ -404,15 +413,14 @@ namespace GameStudies.Graphics
                 using var ms = new MemoryStream(compressed);
                 var image = StbImageSharp.ImageResult.FromStream(ms, StbImageSharp.ColorComponents.RedGreenBlueAlpha);
 
-                GL.TexImage2D(TextureTarget.Texture2D, 0, PixelInternalFormat.Rgba,
-                    image.Width, image.Height, 0, PixelFormat.Rgba, PixelType.UnsignedByte, image.Data);
+                _gl.TexImage2D<byte>(GLEnum.Texture2D, 0, (int)GLEnum.Rgba, (uint)image.Width, (uint)image.Height, 0, GLEnum.Rgba, GLEnum.UnsignedByte, image.Data);
             }
 
-            GL.GenerateMipmap(GenerateMipmapTarget.Texture2D);
-            GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureWrapS, (int)OpenTK.Graphics.OpenGL4.TextureWrapMode.Repeat);
-            GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureWrapT, (int)OpenTK.Graphics.OpenGL4.TextureWrapMode.Repeat);
-            GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMinFilter, (int)TextureMinFilter.LinearMipmapLinear);
-            GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMagFilter, (int)TextureMagFilter.Linear);
+            _gl.GenerateMipmap(GLEnum.Texture2D);
+            _gl.TexParameter(GLEnum.Texture2D, GLEnum.TextureWrapS, (int)GLEnum.Repeat);
+            _gl.TexParameter(GLEnum.Texture2D, GLEnum.TextureWrapT, (int)GLEnum.Repeat);
+            _gl.TexParameter(GLEnum.Texture2D, GLEnum.TextureMinFilter, (int)GLEnum.LinearMipmapLinear);
+            _gl.TexParameter(GLEnum.Texture2D, GLEnum.TextureMagFilter, (int)GLEnum.Linear);
 
             return textureId;
 

@@ -1,18 +1,21 @@
-using OpenTK.Graphics.OpenGL;
+using System;
+using Silk.NET.OpenGL;
+using Silk.NET.Windowing;
 
 namespace GameStudies.Graphics
 {
     public sealed class ScreenQuad : IDisposable
     {
-        private int _vao, _vbo, _ebo;
+        private readonly GL _gl;
+        private uint _vao, _vbo, _ebo;
 
-        private
-        static readonly float[] s_Vertices =
+        private static readonly float[] s_Vertices =
         {
-            -1f, -1f, 0f, 0f,
-             1f, -1f, 1f, 0f,
-             1f,  1f, 1f, 1f,
-            -1f,  1f, 0f, 1f,
+            // pos      // uv
+            -1f, -1f,   0f, 0f,
+             1f, -1f,   1f, 0f,
+             1f,  1f,   1f, 1f,
+            -1f,  1f,   0f, 1f,
         };
 
         private static readonly uint[] s_Indices =
@@ -21,51 +24,53 @@ namespace GameStudies.Graphics
             0, 2, 3
         };
 
-        public ScreenQuad()
+        public ScreenQuad(GL gl)
         {
+            _gl = gl;
             Create();
         }
 
-        private void Create()
+        private unsafe void Create()
         {
-            _vao = GL.GenVertexArray();
-            _vbo = GL.GenBuffer();
-            _ebo = GL.GenBuffer();
+            _vao = _gl.GenVertexArray();
+            _vbo = _gl.GenBuffer();
+            _ebo = _gl.GenBuffer();
 
-            GL.BindVertexArray(_vao);
+            _gl.BindVertexArray(_vao);
 
-            GL.BindBuffer(BufferTarget.ArrayBuffer, _vbo);
-            GL.BufferData(BufferTarget.ArrayBuffer, s_Vertices.Length * sizeof(float), s_Vertices, BufferUsageHint.StaticDraw);
+            _gl.BindBuffer(GLEnum.ArrayBuffer, _vbo);
+            _gl.BufferData<float>(GLEnum.ArrayBuffer, s_Vertices.AsSpan(), GLEnum.StaticDraw);
 
-            GL.BindBuffer(BufferTarget.ElementArrayBuffer, _ebo);
-            GL.BufferData(BufferTarget.ElementArrayBuffer, s_Indices.Length * sizeof(uint), s_Indices, BufferUsageHint.StaticDraw);
+            _gl.BindBuffer(GLEnum.ElementArrayBuffer, _ebo);
+            _gl.BufferData<uint>(GLEnum.ElementArrayBuffer, s_Indices.AsSpan(), GLEnum.StaticDraw);
 
-            int stride = 4 * sizeof(float);
+            const int floatsPerVertex = 4;
+            uint stride = (uint)(floatsPerVertex * sizeof(float));
 
-            GL.EnableVertexAttribArray(0);
-            GL.VertexAttribPointer(0, 2, VertexAttribPointerType.Float, false, stride, 0);
+            _gl.EnableVertexAttribArray(0);
+            _gl.VertexAttribPointer(0, 2, GLEnum.Float, false, stride, 0);
 
-            GL.EnableVertexAttribArray(1);
-            GL.VertexAttribPointer(1, 2, VertexAttribPointerType.Float, false, stride, 2 * sizeof(float));
+            _gl.EnableVertexAttribArray(1);
+            _gl.VertexAttribPointer(1, 2, GLEnum.Float, false, stride, 2 * sizeof(float));
 
-            GL.BindVertexArray(0);
-            GL.BindBuffer(BufferTarget.ArrayBuffer, 0);
+            _gl.BindVertexArray(0);
+            _gl.BindBuffer(GLEnum.ArrayBuffer, 0);
         }
 
         public void Draw()
         {
-            GL.BindVertexArray(_vao);
-            GL.DrawElements(PrimitiveType.Triangles, s_Indices.Length, DrawElementsType.UnsignedInt, 0);
-            GL.BindVertexArray(0);
+            _gl.BindVertexArray(_vao);
+            _gl.DrawElements(GLEnum.Triangles, (uint)s_Indices.Length, GLEnum.UnsignedInt, 0);
+            _gl.BindVertexArray(0);
         }
 
         public void Dispose()
         {
-            if (_ebo != 0) GL.DeleteBuffer(_ebo);
-            if (_vbo != 0) GL.DeleteBuffer(_vbo);
-            if (_vao != 0) GL.DeleteVertexArray(_vao);
-            _ebo = _vbo = _vao = 0;
+            if (_ebo != 0) _gl.DeleteBuffer(_ebo);
+            if (_vbo != 0) _gl.DeleteBuffer(_vbo);
+            if (_vao != 0) _gl.DeleteVertexArray(_vao);
 
+            _ebo = _vbo = _vao = 0;
         }
     }
 }

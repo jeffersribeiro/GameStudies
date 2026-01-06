@@ -1,9 +1,9 @@
 using GameStudies.Graphics;
-using OpenTK.Mathematics;
+using Matrix4 = System.Numerics.Matrix4x4;
 
 namespace GameStudies.Core
 {
-    public unsafe class Animator
+    public class Animator
     {
         private List<Matrix4> _FinalBoneMatrices = new(100);
         private Animation _CurrentAnimation;
@@ -55,19 +55,21 @@ namespace GameStudies.Core
                 nodeTransform = bone.GetLocalTransform();
             }
 
-            Matrix4 globalTransformation = nodeTransform * parentTransform;
+            Matrix4 globalTransformation = parentTransform * nodeTransform;
 
             var boneInfoMap = _CurrentAnimation.GetBoneIDMap();
             if (boneInfoMap.TryGetValue(nodeName, out var boneInfo))
             {
-                _FinalBoneMatrices[boneInfo.Id] = boneInfo.Offset * globalTransformation;
+                int index = boneInfo.Id;
+                Matrix4 offset = boneInfo.Offset;
+                _FinalBoneMatrices[index] = globalTransformation * offset;
             }
 
-            for (int i = 0; i < node.Children.Count; i++)
+            for (int i = 0; i < node.ChildrenCount; i++)
             {
-                var children = node.Children[i];
-                CalculateBoneTransform(ref children, globalTransformation);
-                node.Children[i] = children;
+                var tempChildNode = node.Children[i];
+                CalculateBoneTransform(ref tempChildNode, globalTransformation);
+                node.Children[i] = tempChildNode;
             }
         }
 

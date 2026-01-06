@@ -1,6 +1,7 @@
 using GameStudies.Graphics;
-using OpenTK.Mathematics;
-using OpenTK.Windowing.GraphicsLibraryFramework;
+using Silk.NET.Input;
+using Vector3 = System.Numerics.Vector3;
+
 
 namespace GameStudies.Objects
 {
@@ -65,16 +66,16 @@ namespace GameStudies.Objects
             }
         }
 
-        public void ProcessKeyboard(KeyboardState kb, float deltaTime)
+        public void ProcessKeyboard(IKeyboard kb, float deltaTime)
         {
             float velocity = Speed * deltaTime;
 
-            if (kb.IsKeyDown(Keys.Right)) Position.X += velocity;
-            if (kb.IsKeyDown(Keys.Left)) Position.X -= velocity;
-            if (kb.IsKeyDown(Keys.Up)) Position.Z -= velocity;
-            if (kb.IsKeyDown(Keys.Down)) Position.Z += velocity;
-            if (kb.IsKeyDown(Keys.KeyPad1)) Position.Y += velocity;
-            if (kb.IsKeyDown(Keys.KeyPad0)) Position.Y -= velocity;
+            if (kb.IsKeyPressed(Key.Right)) Position.X += velocity;
+            if (kb.IsKeyPressed(Key.Left)) Position.X -= velocity;
+            if (kb.IsKeyPressed(Key.Up)) Position.Z -= velocity;
+            if (kb.IsKeyPressed(Key.Down)) Position.Z += velocity;
+            if (kb.IsKeyPressed(Key.Keypad1)) Position.Y += velocity;
+            if (kb.IsKeyPressed(Key.Keypad0)) Position.Y -= velocity;
         }
 
     }

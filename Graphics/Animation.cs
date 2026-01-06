@@ -1,9 +1,9 @@
-using OpenTK.Mathematics;
+using Matrix4 = System.Numerics.Matrix4x4;
 using Assimp = Silk.NET.Assimp;
 
 namespace GameStudies.Graphics
 {
-    public unsafe struct AssimpNodeData
+    public struct AssimpNodeData
     {
         public Matrix4 Transformation;
         public string Name;
@@ -31,7 +31,7 @@ namespace GameStudies.Graphics
             if (scene == null || scene->MRootNode == null)
                 throw new Exception("error on loading scene and rootNode");
 
-            var animation = scene->MAnimations[72];
+            var animation = scene->MAnimations[0];
             _Duration = (float)animation->MDuration;
             _TicksPerSecond = (int)animation->MTicksPerSecond;
             if (_TicksPerSecond <= 0) _TicksPerSecond = 25;
@@ -73,7 +73,7 @@ namespace GameStudies.Graphics
                 var channel = animation->MChannels[i];
 
                 // In Silk.NET.Assimp, MNodeName is AssimpString; make sure to get a C# string
-                string boneName = channel->MNodeName.ToString();
+                string boneName = channel->MNodeName.AsString;
 
                 // If this channel's bone is not in the model's map yet, add it
                 if (!boneInfoMap.TryGetValue(boneName, out var info))
@@ -100,9 +100,9 @@ namespace GameStudies.Graphics
         private void ReadHeirarchyData(ref AssimpNodeData dest, Assimp.Node* src)
         {
 
-            dest.Name = src->MName.ToString();
+            dest.Name = src->MName.AsString;
 
-            var matrix = src->MTransformation.ToOpenTK();
+            var matrix = src->MTransformation;
             dest.Transformation = matrix;
             dest.ChildrenCount = (int)src->MNumChildren;
 

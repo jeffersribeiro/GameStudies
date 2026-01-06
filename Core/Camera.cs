@@ -1,5 +1,8 @@
-using OpenTK.Mathematics;
-using OpenTK.Windowing.GraphicsLibraryFramework;
+
+using Silk.NET.Input;
+using Matrix4 = System.Numerics.Matrix4x4;
+using Vector3 = System.Numerics.Vector3;
+using Vector2 = System.Numerics.Vector2;
 
 namespace GameStudies.Core
 {
@@ -21,7 +24,7 @@ namespace GameStudies.Core
 
         public float Degress = 45f;
 
-        public Matrix4 ViewMatrix => Matrix4.LookAt(Position, Position + Front, Up);
+        public Matrix4 ViewMatrix => Matrix4.CreateLookAt(Position, Position + Front, Up);
 
         public Matrix4 ProjectionMatrix =>
         Matrix4.CreatePerspectiveFieldOfView(
@@ -32,36 +35,37 @@ namespace GameStudies.Core
 
         public Camera() { }
 
-        public void ProcessKeyboard(KeyboardState kb, float deltaTime)
+        public void ProcessKeyboard(IKeyboard kb, float deltaTime)
         {
             float velocity = Speed * deltaTime;
 
             var right = Vector3.Normalize(Vector3.Cross(Front, Up));
+            var up = Vector3.Normalize(Vector3.Cross(right, Front));
 
-            if (kb.IsKeyDown(Keys.W)) Position += Front * velocity;
-            if (kb.IsKeyDown(Keys.S)) Position -= Front * velocity;
-            if (kb.IsKeyDown(Keys.A)) Position -= right * velocity;
-            if (kb.IsKeyDown(Keys.D)) Position += right * velocity;
-            if (kb.IsKeyDown(Keys.Space)) Position += Up * velocity;
-            if (kb.IsKeyDown(Keys.LeftControl)) Position -= Up * velocity;
+            if (kb.IsKeyPressed(Key.W)) Position += Front * velocity;
+            if (kb.IsKeyPressed(Key.S)) Position -= Front * velocity;
 
+            if (kb.IsKeyPressed(Key.A)) Position -= right * velocity;
+            if (kb.IsKeyPressed(Key.D)) Position += right * velocity;
+
+            if (kb.IsKeyPressed(Key.Space)) Position += up * velocity;
+            if (kb.IsKeyPressed(Key.ControlLeft)) Position -= up * velocity;
         }
-
         public void ProcessMouseMovement(Vector2 delta)
         {
             delta.X *= Sensitvity;
             delta.Y *= Sensitvity;
 
             Yaw += delta.X;
-            Pitch = MathHelper.Clamp(Pitch + delta.Y, -89f, 89f);
+            Pitch = Math.Clamp(Pitch + delta.Y, -89f, 89f);
 
             UpdateVectors();
         }
 
-        public void ProcessMouseScroll(Vector2 offset)
+        public void ProcessMouseScroll(ScrollWheel wheel)
         {
-            Fov -= offset.Y;
-            Fov = MathHelper.Clamp(Fov, 1f, 90f);
+            Fov -= wheel.Y;
+            Fov = Math.Clamp(Fov, 1f, 90f);
         }
 
         private void UpdateVectors()

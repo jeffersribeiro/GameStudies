@@ -1,7 +1,10 @@
-using OpenTK.Mathematics;
-using Assimp = Silk.NET.Assimp;
-using Silk.NET.Maths;
 using System.Diagnostics;
+using Matrix4 = System.Numerics.Matrix4x4;
+using Vector3 = System.Numerics.Vector3;
+using Vector2 = System.Numerics.Vector2;
+using Quaternion = System.Numerics.Quaternion;
+using Assimp = Silk.NET.Assimp;
+
 
 namespace GameStudies
 {
@@ -13,13 +16,12 @@ namespace GameStudies
         public static Quaternion ToOpenTK(this Assimp.AssimpQuaternion q)
             => new(q.X, q.Y, q.Z, q.W);
 
-        public static Matrix4 ToOpenTK(this System.Numerics.Matrix4x4 m)
-            => new(
-                    m.M11, m.M21, m.M31, m.M41,
-                    m.M12, m.M22, m.M32, m.M42,
-                    m.M13, m.M23, m.M33, m.M43,
-                    m.M14, m.M24, m.M34, m.M44
-                );
+        public static Matrix4 ToOpenTK(this System.Numerics.Matrix4x4 m) => new(
+            m.M11, m.M12, m.M13, m.M14,
+            m.M21, m.M22, m.M23, m.M24,
+            m.M31, m.M32, m.M33, m.M34,
+            m.M41, m.M42, m.M43, m.M44
+       );
 
         static bool HasInvalid(System.Numerics.Matrix4x4 m)
         {
