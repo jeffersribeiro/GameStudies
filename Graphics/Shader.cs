@@ -9,7 +9,7 @@ namespace GameStudies.Graphics
     {
         private GL _gl;
 
-        public uint Prog { get; }
+        public static uint Prog { get; set; }
         public Shader(GL gl, string vertPath, string fragPath)
         {
             _gl = gl;
@@ -99,7 +99,7 @@ namespace GameStudies.Graphics
         public unsafe void SetMat4(string name, Matrix4 m)
         {
             int loc = _gl.GetUniformLocation(Prog, name);
-            if (loc < 0) throw new Exception("loc not found");
+            if (loc < 0) return;
 
             _gl.UniformMatrix4(loc, 1, false, (float*)&m);
         }

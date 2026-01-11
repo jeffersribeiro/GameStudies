@@ -18,10 +18,9 @@ namespace GameStudies.Objects
         public Vector3 Scale { get; set; } = Vector3.One;
         public float Speed { get; set; } = 1.5f;
 
-        public CubeObject(GL gl, Vector3 startPosition, float size = 1f)
+        public CubeObject(GL gl, float size = 1f)
         {
             _gl = gl;
-            Position = startPosition;
             Vertex[] vertices = VerticesFactory.CreateCube();
             uint[] indices = VerticesFactory.Indices;
 

@@ -1,55 +1,118 @@
 using Silk.NET.Input;
-using Silk.NET.Maths;
 using Silk.NET.OpenGL;
 using Silk.NET.Windowing;
-
-using GameStudies.Graphics;
+using System;
+using Silk.NET.Maths;
+using GameStudies.Core;
 
 using Matrix4 = System.Numerics.Matrix4x4;
 using Vector3 = System.Numerics.Vector3;
 using Vector2 = System.Numerics.Vector2;
+using GameStudies.Objects;
 
 namespace GameStudies.Core
 {
     public sealed class Game : IDisposable
     {
-        private readonly IWindow _window;
-        private GL _gl = default!;
+        private static IWindow window;
+        private static GL Gl;
+        private static Graphics.Shader Shader;
+        private static CubeObject Model;
+        private Camera _camera = default!;
+        private float _angle;
 
+        private bool _rightMouseDown;
+        private Vector2 _lastMousePos;
         private IInputContext _input = default!;
         private IKeyboard _keyboard = default!;
         private IMouse _mouse = default!;
 
-        private Graphics.Shader _shader = default!;
-        private Camera _camera = default!;
+        // 24 vertices
+        // layout: pos.xyz | normal.xyz | color.rgb
+        private static readonly float[] _vertices =
+        {
+            // +Z (front) - RED
+            -0.5f,-0.5f, 0.5f,   0,0,1,   1,0,0,
+            0.5f,-0.5f, 0.5f,   0,0,1,   1,0,0,
+            0.5f, 0.5f, 0.5f,   0,0,1,   1,0,0,
+            -0.5f, 0.5f, 0.5f,   0,0,1,   1,0,0,
 
-        private uint _emptyVao;
-        private float _angleY;
+            // -Z (back) - GREEN
+            0.5f,-0.5f,-0.5f,   0,0,-1,  0,1,0,
+            -0.5f,-0.5f,-0.5f,   0,0,-1,  0,1,0,
+            -0.5f, 0.5f,-0.5f,   0,0,-1,  0,1,0,
+            0.5f, 0.5f,-0.5f,   0,0,-1,  0,1,0,
 
-        private bool _rightMouseDown;
-        private Vector2 _lastMousePos;
+            // -X (left) - BLUE
+            -0.5f,-0.5f,-0.5f,  -1,0,0,   0,0,1,
+            -0.5f,-0.5f, 0.5f,  -1,0,0,   0,0,1,
+            -0.5f, 0.5f, 0.5f,  -1,0,0,   0,0,1,
+            -0.5f, 0.5f,-0.5f,  -1,0,0,   0,0,1,
+
+            // +X (right) - YELLOW
+            0.5f,-0.5f, 0.5f,   1,0,0,   1,1,0,
+            0.5f,-0.5f,-0.5f,   1,0,0,   1,1,0,
+            0.5f, 0.5f,-0.5f,   1,0,0,   1,1,0,
+            0.5f, 0.5f, 0.5f,   1,0,0,   1,1,0,
+
+            // +Y (top) - CYAN
+            -0.5f, 0.5f, 0.5f,   0,1,0,   0,1,1,
+            0.5f, 0.5f, 0.5f,   0,1,0,   0,1,1,
+            0.5f, 0.5f,-0.5f,   0,1,0,   0,1,1,
+            -0.5f, 0.5f,-0.5f,   0,1,0,   0,1,1,
+
+            // -Y (bottom) - MAGENTA
+            -0.5f,-0.5f,-0.5f,   0,-1,0,  1,0,1,
+            0.5f,-0.5f,-0.5f,   0,-1,0,  1,0,1,
+            0.5f,-0.5f, 0.5f,   0,-1,0,  1,0,1,
+            -0.5f,-0.5f, 0.5f,   0,-1,0,  1,0,1,
+        };
+
+        public static readonly uint[] _indices =
+        {
+            00,01,02,  02,03,00,   // front
+            04,05,06,  06,07,04,   // back
+            08,09,10,  10,11,08,   // left
+            12,13,14,  14,15,12,   // right
+            16,17,18,  18,19,16,   // top
+            20,21,22,  22,23,20    // bottom
+        };
 
         public Game(int width, int height, string title)
         {
-            var opts = WindowOptions.Default;
-            opts.Title = title;
-            opts.Size = new Vector2D<int>(width, height);
+            var options = WindowOptions.Default;
+            options.Size = new Vector2D<int>(width, height);
+            options.Title = title;
+            options.API = new GraphicsAPI(
+            ContextAPI.OpenGL,
+            ContextProfile.Core,
+            ContextFlags.Default,
+            new APIVersion(3, 3));
+            window = Window.Create(options);
 
-            _window = Window.Create(opts);
-            _window.Load += OnLoad;
-            _window.Update += OnUpdate;
-            _window.Render += OnRender;
-            _window.Resize += OnResize;
-            _window.Closing += OnClosing;
+            window.Load += OnLoad;
+            window.Render += OnRender;
+            window.Update += OnUpdate;
+            window.FramebufferResize += OnFramebufferResize;
+            window.Closing += () => Dispose();
         }
 
-        public void Run() => _window.Run();
+        public void Run() => window.Run();
 
-        private void OnLoad()
+        private unsafe void OnLoad()
         {
-            _gl = GL.GetApi(_window);
+            Gl = window.CreateOpenGL();
 
-            _input = _window.CreateInput();
+            Shader = new(Gl, "cube.vert", "cube.frag");
+
+            Model = new(Gl);
+
+            _input = window.CreateInput();
+            for (int i = 0; i < _input.Keyboards.Count; i++)
+            {
+                _input.Keyboards[i].KeyDown += KeyDown;
+            }
+
             _keyboard = _input.Keyboards.Count > 0 ? _input.Keyboards[0] : throw new InvalidOperationException("No keyboard found.");
             _mouse = _input.Mice.Count > 0 ? _input.Mice[0] : throw new InvalidOperationException("No mouse found.");
 
@@ -67,31 +130,35 @@ namespace GameStudies.Core
             };
             _mouse.Scroll += (_, wheel) => _camera.ProcessMouseScroll(wheel);
 
-            _gl.Enable(EnableCap.DepthTest);
-            _gl.DepthFunc(DepthFunction.Less);
 
-            _gl.Enable(EnableCap.CullFace);
-            _gl.CullFace(GLEnum.Back);
-            _gl.FrontFace(FrontFaceDirection.Ccw);
+            Gl.Enable(GLEnum.DepthTest);
+            Gl.ClearColor(0.39f, 0.58f, 0.93f, 1.0f);
 
-            _gl.ClearColor(0.12f, 0.18f, 0.25f, 1f);
-
-            _camera = new Camera();
-            _camera.AspectRatio = _window.Size.X / (float)_window.Size.Y;
+            _camera = new();
+            _camera.AspectRatio = window.Size.X / (float)window.Size.Y;
             _camera.Position = new Vector3(0f, 0f, 3.5f);
-
-            // Shaders below:
-            _shader = new(_gl, "cube.vert", "cube.frag");
-
-            // Empty VAO is required in core profile
-            _emptyVao = _gl.GenVertexArray();
         }
 
-        private void OnResize(Vector2D<int> size)
+        private unsafe void OnRender(double dt) //Method needs to be unsafe due to draw elements.
         {
-            if (_shader?.Prog == 0) return;
-            _gl.Viewport(0, 0, (uint)size.X, (uint)size.Y);
-            _camera.AspectRatio = size.X / (float)size.Y;
+            Gl.Clear((uint)(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit));
+
+            Shader.Use();
+
+            var projection = _camera.ProjectionMatrix;
+            var view = _camera.ViewMatrix;
+            var color = new Vector3(1f, 0.85f, 0.25f);
+
+            Shader.SetMat4("projection", projection);
+            Shader.SetMat4("view", view);
+            Shader.SetVec3("uColor", color);
+
+            Model.Rotation += new Vector3(_angle * 0.6f);
+
+            Model.Draw(Shader);
+
+            //Draw the geometry.
+            Gl.DrawElements(PrimitiveType.Triangles, (uint)_indices.Length, DrawElementsType.UnsignedInt, null);
         }
 
         private void OnUpdate(double dt)
@@ -108,38 +175,34 @@ namespace GameStudies.Core
                 _camera.ProcessMouseMovement(d);
             }
 
-            _angleY += 0.9f * delta;
+            _angle += 0.9f * delta;
         }
 
-        private void OnRender(double dt)
+        private void OnFramebufferResize(Vector2D<int> newSize)
         {
-            _gl.BindFramebuffer(GLEnum.Framebuffer, 0);
-            _gl.Viewport(0, 0, (uint)_window.Size.X, (uint)_window.Size.Y);
-            _gl.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
+            Gl.Viewport(0, 0, (uint)newSize.X, (uint)newSize.Y);
+            _camera.AspectRatio = newSize.X / (float)newSize.Y;
+        }
 
-            _shader.Use();
+        private static void OnClose()
+        {
+            //Remember to delete the buffers.
+            Model.Dispose();
+            Shader.Delete();
+        }
 
-            var model =
-                Matrix4.CreateRotationY(_angleY) *
-                Matrix4.CreateRotationX(0.35f);
-
-            _shader.SetMat4("model", model);
-            _shader.SetMat4("view", _camera.ViewMatrix);
-            _shader.SetMat4("projection", _camera.ProjectionMatrix);
-
-            _shader.SetVec3("uColor", new Vector3(1f, 0.85f, 0.25f));
-
-            _gl.BindVertexArray(_emptyVao);
-            _gl.DrawArrays(GLEnum.Triangles, 0, 36); // 12 triangles * 3
-            _gl.BindVertexArray(0);
+        private static void KeyDown(IKeyboard arg1, Key arg2, int arg3)
+        {
+            if (arg2 == Key.Escape)
+            {
+                window.Close();
+            }
         }
 
         private void OnClosing() => Dispose();
-
         public void Dispose()
         {
-            if (_emptyVao != 0) _gl.DeleteVertexArray(_emptyVao);
-            _shader?.Delete();
+
         }
     }
 }

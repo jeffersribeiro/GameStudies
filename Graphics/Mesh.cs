@@ -56,7 +56,7 @@ namespace GameStudies.Graphics
             SetupMesh();
         }
 
-        public void Draw(Shader shader, in Matrix4 modelFromEntity)
+        public unsafe void Draw(Shader shader, in Matrix4 modelFromEntity)
         {
             int diffuseNr = 0, specularNr = 0, normalNr = 0, heightNr = 0;
             shader.Use();
@@ -90,7 +90,8 @@ namespace GameStudies.Graphics
             shader.SetInt("uSpecularCount", specularNr);
 
             _gl.BindVertexArray(_vao);
-            _gl.DrawElements(GLEnum.Triangles, (uint)_indices.Length, DrawElementsType.UnsignedInt, 0);
+            _gl.DrawElements(PrimitiveType.Triangles, (uint)_indices.Length, DrawElementsType.UnsignedInt, null);
+
             _gl.BindVertexArray(0);
 
             _gl.ActiveTexture(GLEnum.Texture0);
@@ -116,33 +117,33 @@ namespace GameStudies.Graphics
 
             // vertex Positions
             _gl.EnableVertexAttribArray(0);
-            _gl.VertexAttribPointer(0, 3, GLEnum.Float, false, stride, off(nameof(Vertex.Position)));
+            _gl.VertexAttribPointer(0, 3, VertexAttribPointerType.Float, false, stride, off(nameof(Vertex.Position)));
 
             // vertex normals
             _gl.EnableVertexAttribArray(1);
-            _gl.VertexAttribPointer(1, 3, GLEnum.Float, false, stride, off(nameof(Vertex.Normal)));
+            _gl.VertexAttribPointer(1, 3, VertexAttribPointerType.Float, false, stride, off(nameof(Vertex.Normal)));
             // vertex colors
             _gl.EnableVertexAttribArray(2);
-            _gl.VertexAttribPointer(2, 3, GLEnum.Float, false, stride, off(nameof(Vertex.Color)));
+            _gl.VertexAttribPointer(2, 3, VertexAttribPointerType.Float, false, stride, off(nameof(Vertex.Color)));
 
             // vertex texture coords
             _gl.EnableVertexAttribArray(3);
-            _gl.VertexAttribPointer(3, 2, GLEnum.Float, false, stride, off(nameof(Vertex.vUV)));
+            _gl.VertexAttribPointer(3, 2, VertexAttribPointerType.Float, false, stride, off(nameof(Vertex.vUV)));
 
             // vertex tangent
             _gl.EnableVertexAttribArray(4);
-            _gl.VertexAttribPointer(4, 3, GLEnum.Float, false, stride, off(nameof(Vertex.Tangent)));
+            _gl.VertexAttribPointer(4, 3, VertexAttribPointerType.Float, false, stride, off(nameof(Vertex.Tangent)));
 
             // vertex bitangent
             _gl.EnableVertexAttribArray(5);
-            _gl.VertexAttribPointer(5, 3, GLEnum.Float, false, stride, off(nameof(Vertex.Bitangent)));
+            _gl.VertexAttribPointer(5, 3, VertexAttribPointerType.Float, false, stride, off(nameof(Vertex.Bitangent)));
             // ids
             _gl.EnableVertexAttribArray(6);
-            _gl.VertexAttribIPointer(6, 4, GLEnum.Int, stride, off(nameof(Vertex.BoneIDs)));
+            _gl.VertexAttribIPointer(6, 4, VertexAttribIType.Int, stride, off(nameof(Vertex.BoneIDs)));
 
             // weights
             _gl.EnableVertexAttribArray(7);
-            _gl.VertexAttribPointer(7, 4, GLEnum.Float, false, stride, off(nameof(Vertex.Weights)));
+            _gl.VertexAttribPointer(7, 4, VertexAttribPointerType.Float, false, stride, off(nameof(Vertex.Weights)));
 
             _gl.BindVertexArray(0);
         }

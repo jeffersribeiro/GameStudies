@@ -32,45 +32,52 @@ namespace GameStudies.Factories
             float h = size * 0.5f; // half-size
             var c = new Vector3(0.08f, 0.93f, 0.93f); // cor base (opcional)
 
+            var RED = new Vector3(1, 0, 0);
+            var GREEN = new Vector3(0, 1, 0);
+            var BLUE = new Vector3(0, 0, 1);
+            var YELLOW = new Vector3(1, 1, 0);
+            var CYAN = new Vector3(0, 1, 1);
+            var MAGENTA = new Vector3(1, 0, 1);
+
             return new Vertex[24]
             {
                 // ===== FRONT (+Z) =====
                 // v0..v3  (CCW olhando a face)
-                new() { Position = new(-h, -h,  h), Normal = new(0, 0, 1), vUV = new(0, 0) }, // 0
-                new() { Position = new( h, -h,  h), Normal = new(0, 0, 1), vUV = new(1, 0) }, // 1
-                new() { Position = new( h,  h,  h), Normal = new(0, 0, 1), vUV = new(1, 1) }, // 2
-                new() { Position = new(-h,  h,  h), Normal = new(0, 0, 1), vUV = new(0, 1) }, // 3
+                new() { Position = new(-h, -h,  h), Normal = new(0, 0, 1), Color=RED,  vUV = new(0, 0) }, // 0
+                new() { Position = new( h, -h,  h), Normal = new(0, 0, 1), Color=RED,  vUV = new(1, 0) }, // 1
+                new() { Position = new( h,  h,  h), Normal = new(0, 0, 1), Color=RED,  vUV = new(1, 1) }, // 2
+                new() { Position = new(-h,  h,  h), Normal = new(0, 0, 1), Color=RED,  vUV = new(0, 1) }, // 3
 
                 // ===== BACK (-Z) =====
                 // atenção à ordem para manter CCW olhando a face (de frente p/ -Z)
-                new() { Position = new( h, -h, -h), Normal = new(0, 0, -1), vUV = new(0, 0) }, // 4
-                new() { Position = new(-h, -h, -h), Normal = new(0, 0, -1), vUV = new(1, 0) }, // 5
-                new() { Position = new(-h,  h, -h), Normal = new(0, 0, -1), vUV = new(1, 1) }, // 6
-                new() { Position = new( h,  h, -h), Normal = new(0, 0, -1), vUV = new(0, 1) }, // 7
+                new() { Position = new( h, -h, -h), Normal = new(0, 0, -1), Color=GREEN, vUV = new(0, 0) }, // 4
+                new() { Position = new(-h, -h, -h), Normal = new(0, 0, -1), Color=GREEN, vUV = new(1, 0) }, // 5
+                new() { Position = new(-h,  h, -h), Normal = new(0, 0, -1), Color=GREEN, vUV = new(1, 1) }, // 6
+                new() { Position = new( h,  h, -h), Normal = new(0, 0, -1), Color=GREEN, vUV = new(0, 1) }, // 7
 
                 // ===== LEFT (-X) =====
-                new() { Position = new(-h, -h, -h), Normal = new(-1, 0, 0), vUV = new(0, 0) }, // 8
-                new() { Position = new(-h, -h,  h), Normal = new(-1, 0, 0), vUV = new(1, 0) }, // 9
-                new() { Position = new(-h,  h,  h), Normal = new(-1, 0, 0), vUV = new(1, 1) }, //10
-                new() { Position = new(-h,  h, -h), Normal = new(-1, 0, 0), vUV = new(0, 1) }, //11
+                new() { Position = new(-h, -h, -h), Normal = new(-1, 0, 0), Color=BLUE, vUV = new(0, 0) }, // 8
+                new() { Position = new(-h, -h,  h), Normal = new(-1, 0, 0), Color=BLUE, vUV = new(1, 0) }, // 9
+                new() { Position = new(-h,  h,  h), Normal = new(-1, 0, 0), Color=BLUE, vUV = new(1, 1) }, //10
+                new() { Position = new(-h,  h, -h), Normal = new(-1, 0, 0), Color=BLUE, vUV = new(0, 1) }, //11
 
                 // ===== RIGHT (+X) =====
-                new() { Position = new( h, -h,  h), Normal = new(1, 0, 0), vUV = new(0, 0) }, //12
-                new() { Position = new( h, -h, -h), Normal = new(1, 0, 0), vUV = new(1, 0) }, //13
-                new() { Position = new( h,  h, -h), Normal = new(1, 0, 0), vUV = new(1, 1) }, //14
-                new() { Position = new( h,  h,  h), Normal = new(1, 0, 0), vUV = new(0, 1) }, //15
+                new() { Position = new( h, -h,  h), Normal = new(1, 0, 0), Color=YELLOW, vUV = new(0, 0) }, //12
+                new() { Position = new( h, -h, -h), Normal = new(1, 0, 0), Color=YELLOW, vUV = new(1, 0) }, //13
+                new() { Position = new( h,  h, -h), Normal = new(1, 0, 0), Color=YELLOW, vUV = new(1, 1) }, //14
+                new() { Position = new( h,  h,  h), Normal = new(1, 0, 0), Color=YELLOW, vUV = new(0, 1) }, //15
 
                 // ===== TOP (+Y) =====
-                new() { Position = new(-h,  h,  h), Normal = new(0, 1, 0), vUV = new(0, 0) }, //16
-                new() { Position = new( h,  h,  h), Normal = new(0, 1, 0), vUV = new(1, 0) }, //17
-                new() { Position = new( h,  h, -h), Normal = new(0, 1, 0), vUV = new(1, 1) }, //18
-                new() { Position = new(-h,  h, -h), Normal = new(0, 1, 0), vUV = new(0, 1) }, //19
+                new() { Position = new(-h,  h,  h), Normal = new(0, 1, 0), Color=CYAN, vUV = new(0, 0) }, //16
+                new() { Position = new( h,  h,  h), Normal = new(0, 1, 0), Color=CYAN, vUV = new(1, 0) }, //17
+                new() { Position = new( h,  h, -h), Normal = new(0, 1, 0), Color=CYAN, vUV = new(1, 1) }, //18
+                new() { Position = new(-h,  h, -h), Normal = new(0, 1, 0), Color=CYAN, vUV = new(0, 1) }, //19
 
                 // ===== BOTTOM (-Y) =====
-                new() { Position = new(-h, -h, -h), Normal = new(0, -1, 0), vUV = new(0, 0) }, //20
-                new() { Position = new( h, -h, -h), Normal = new(0, -1, 0), vUV = new(1, 0) }, //21
-                new() { Position = new( h, -h,  h), Normal = new(0, -1, 0), vUV = new(1, 1) }, //22
-                new() { Position = new(-h, -h,  h), Normal = new(0, -1, 0), vUV = new(0, 1) }, //23
+                new() { Position = new(-h, -h, -h), Normal = new(0, -1, 0), Color=MAGENTA, vUV = new(0, 0) }, //20
+                new() { Position = new( h, -h, -h), Normal = new(0, -1, 0), Color=MAGENTA, vUV = new(1, 0) }, //21
+                new() { Position = new( h, -h,  h), Normal = new(0, -1, 0), Color=MAGENTA, vUV = new(1, 1) }, //22
+                new() { Position = new(-h, -h,  h), Normal = new(0, -1, 0), Color=MAGENTA, vUV = new(0, 1) }, //23
             };
         }
         public static Vertex[] CreateSquare(float size = 1.0f)
