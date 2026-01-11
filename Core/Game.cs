@@ -1,14 +1,12 @@
+using Silk.NET.Maths;
 using Silk.NET.Input;
 using Silk.NET.OpenGL;
 using Silk.NET.Windowing;
-using System;
-using Silk.NET.Maths;
-using GameStudies.Core;
 
-using Matrix4 = System.Numerics.Matrix4x4;
 using Vector3 = System.Numerics.Vector3;
 using Vector2 = System.Numerics.Vector2;
 using GameStudies.Objects;
+using GameStudies.Graphics;
 
 namespace GameStudies.Core
 {
@@ -17,7 +15,8 @@ namespace GameStudies.Core
         private static IWindow window;
         private static GL Gl;
         private static Graphics.Shader Shader;
-        private static CubeObject Model;
+        private static Model Model;
+        private static Animator Animator;
         private Camera _camera = default!;
         private float _angle;
 
@@ -26,57 +25,6 @@ namespace GameStudies.Core
         private IInputContext _input = default!;
         private IKeyboard _keyboard = default!;
         private IMouse _mouse = default!;
-
-        // 24 vertices
-        // layout: pos.xyz | normal.xyz | color.rgb
-        private static readonly float[] _vertices =
-        {
-            // +Z (front) - RED
-            -0.5f,-0.5f, 0.5f,   0,0,1,   1,0,0,
-            0.5f,-0.5f, 0.5f,   0,0,1,   1,0,0,
-            0.5f, 0.5f, 0.5f,   0,0,1,   1,0,0,
-            -0.5f, 0.5f, 0.5f,   0,0,1,   1,0,0,
-
-            // -Z (back) - GREEN
-            0.5f,-0.5f,-0.5f,   0,0,-1,  0,1,0,
-            -0.5f,-0.5f,-0.5f,   0,0,-1,  0,1,0,
-            -0.5f, 0.5f,-0.5f,   0,0,-1,  0,1,0,
-            0.5f, 0.5f,-0.5f,   0,0,-1,  0,1,0,
-
-            // -X (left) - BLUE
-            -0.5f,-0.5f,-0.5f,  -1,0,0,   0,0,1,
-            -0.5f,-0.5f, 0.5f,  -1,0,0,   0,0,1,
-            -0.5f, 0.5f, 0.5f,  -1,0,0,   0,0,1,
-            -0.5f, 0.5f,-0.5f,  -1,0,0,   0,0,1,
-
-            // +X (right) - YELLOW
-            0.5f,-0.5f, 0.5f,   1,0,0,   1,1,0,
-            0.5f,-0.5f,-0.5f,   1,0,0,   1,1,0,
-            0.5f, 0.5f,-0.5f,   1,0,0,   1,1,0,
-            0.5f, 0.5f, 0.5f,   1,0,0,   1,1,0,
-
-            // +Y (top) - CYAN
-            -0.5f, 0.5f, 0.5f,   0,1,0,   0,1,1,
-            0.5f, 0.5f, 0.5f,   0,1,0,   0,1,1,
-            0.5f, 0.5f,-0.5f,   0,1,0,   0,1,1,
-            -0.5f, 0.5f,-0.5f,   0,1,0,   0,1,1,
-
-            // -Y (bottom) - MAGENTA
-            -0.5f,-0.5f,-0.5f,   0,-1,0,  1,0,1,
-            0.5f,-0.5f,-0.5f,   0,-1,0,  1,0,1,
-            0.5f,-0.5f, 0.5f,   0,-1,0,  1,0,1,
-            -0.5f,-0.5f, 0.5f,   0,-1,0,  1,0,1,
-        };
-
-        public static readonly uint[] _indices =
-        {
-            00,01,02,  02,03,00,   // front
-            04,05,06,  06,07,04,   // back
-            08,09,10,  10,11,08,   // left
-            12,13,14,  14,15,12,   // right
-            16,17,18,  18,19,16,   // top
-            20,21,22,  22,23,20    // bottom
-        };
 
         public Game(int width, int height, string title)
         {
@@ -99,13 +47,17 @@ namespace GameStudies.Core
 
         public void Run() => window.Run();
 
-        private unsafe void OnLoad()
+        private void OnLoad()
         {
             Gl = window.CreateOpenGL();
 
             Shader = new(Gl, "cube.vert", "cube.frag");
 
-            Model = new(Gl);
+            var modelPath = "Barbarian.glb";
+
+            Model = new(Gl, modelPath);
+            var animation = new Animation(modelPath, Model);
+            Animator = new(animation);
 
             _input = window.CreateInput();
             for (int i = 0; i < _input.Keyboards.Count; i++)
@@ -139,31 +91,31 @@ namespace GameStudies.Core
             _camera.Position = new Vector3(0f, 0f, 3.5f);
         }
 
-        private unsafe void OnRender(double dt) //Method needs to be unsafe due to draw elements.
+        private void OnRender(double dt)
         {
             Gl.Clear((uint)(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit));
 
-            Shader.Use();
-
             var projection = _camera.ProjectionMatrix;
             var view = _camera.ViewMatrix;
-            var color = new Vector3(1f, 0.85f, 0.25f);
 
+            Shader.Use();
             Shader.SetMat4("projection", projection);
             Shader.SetMat4("view", view);
-            Shader.SetVec3("uColor", color);
 
-            Model.Rotation += new Vector3(_angle * 0.6f);
+            var transforms = Animator.GetFinalBoneMatrices();
+            for (int i = 0; i < transforms.Count; ++i)
+            {
+                Shader.SetMat4($"finalBonesMatrices[{i}]", transforms[i]);
+            }
 
             Model.Draw(Shader);
-
-            //Draw the geometry.
-            Gl.DrawElements(PrimitiveType.Triangles, (uint)_indices.Length, DrawElementsType.UnsignedInt, null);
         }
 
         private void OnUpdate(double dt)
         {
             float delta = (float)dt;
+
+            Animator.UpdateAnimation(delta);
 
             _camera.ProcessKeyboard(_keyboard, delta);
 

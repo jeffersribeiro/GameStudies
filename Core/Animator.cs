@@ -60,18 +60,19 @@ namespace GameStudies.Core
             var boneInfoMap = _CurrentAnimation.GetBoneIDMap();
             if (boneInfoMap.TryGetValue(nodeName, out var boneInfo))
             {
-                int index = boneInfo.Id;
-                Matrix4 offset = boneInfo.Offset;
+                int index = boneInfoMap[nodeName].Id;
+                Matrix4 offset = boneInfoMap[nodeName].Offset;
                 _FinalBoneMatrices[index] = globalTransformation * offset;
             }
 
             for (int i = 0; i < node.ChildrenCount; i++)
             {
-                var tempChildNode = node.Children[i];
-                CalculateBoneTransform(ref tempChildNode, globalTransformation);
-                node.Children[i] = tempChildNode;
+                var childrenRef = node.Children[i];
+                CalculateBoneTransform(ref childrenRef, globalTransformation);
+                node.Children[i] = childrenRef;
             }
         }
+
 
         public List<Matrix4> GetFinalBoneMatrices()
         {

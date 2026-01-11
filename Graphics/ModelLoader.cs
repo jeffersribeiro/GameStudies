@@ -208,7 +208,7 @@ namespace GameStudies.Graphics
                 default: throw new ArgumentOutOfRangeException(nameof(i));
             }
         }
-        static void SetBoneIds(ref Vector4i w, int i, int value)
+        static void SetBoneIds(ref IVec4 w, int i, int value)
         {
             switch (i)
             {
@@ -226,11 +226,11 @@ namespace GameStudies.Graphics
             for (int boneIndex = 0; boneIndex < mesh->MNumBones; ++boneIndex)
             {
                 int boneID = -1;
-                string boneName = mesh->MBones[boneIndex]->MName;
+                string boneName = mesh->MBones[boneIndex]->MName.AsString;
                 if (!_boneInfoMap.TryGetValue(boneName, out var newBoneInfo))
                 {
                     newBoneInfo.Id = _boneCounter;
-                    var offsetMatrix = mesh->MBones[boneIndex]->MOffsetMatrix.ToOpenTK();
+                    var offsetMatrix = mesh->MBones[boneIndex]->MOffsetMatrix;
                     newBoneInfo.Offset = offsetMatrix;
                     _boneInfoMap[boneName] = newBoneInfo;
                     boneID = _boneCounter;
@@ -256,7 +256,7 @@ namespace GameStudies.Graphics
             for (int i = 0; i < vertices.Count; i++)
             {
                 var v = vertices[i];
-                NormalizeBoneWeights(ref v);
+                // NormalizeBoneWeights(ref v);
                 vertices[i] = v;
             }
         }

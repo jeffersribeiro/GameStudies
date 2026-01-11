@@ -1,13 +1,35 @@
-using Matrix4 = System.Numerics.Matrix4x4;
-using Vector4 = System.Numerics.Vector4;
-using Vector4i = System.Numerics.Vector4;
-using Vector3 = System.Numerics.Vector3;
-using Vector2 = System.Numerics.Vector2;
 using Silk.NET.OpenGL;
 using System.Runtime.InteropServices;
 
+using Vector4 = System.Numerics.Vector4;
+using Vector3 = System.Numerics.Vector3;
+using Vector2 = System.Numerics.Vector2;
+using Matrix4 = System.Numerics.Matrix4x4;
+
 namespace GameStudies.Graphics
 {
+
+    [StructLayout(LayoutKind.Sequential, Pack = 1)]
+    public struct IVec4
+    {
+        public int X, Y, Z, W;
+
+        public int this[int i]
+        {
+            get => i switch { 0 => X, 1 => Y, 2 => Z, 3 => W, _ => throw new ArgumentOutOfRangeException(nameof(i)) };
+            set
+            {
+                switch (i)
+                {
+                    case 0: X = value; break;
+                    case 1: Y = value; break;
+                    case 2: Z = value; break;
+                    case 3: W = value; break;
+                    default: throw new ArgumentOutOfRangeException(nameof(i));
+                }
+            }
+        }
+    }
     public enum TextureType { Diffuse, Specular, Normal, Height }
 
     public struct Vertex
@@ -25,7 +47,7 @@ namespace GameStudies.Graphics
         // bitangent
         public Vector3 Bitangent;
         // bone indexes which will influence this vertex
-        public Vector4i BoneIDs;
+        public IVec4 BoneIDs;
         // weights from each bone
         public Vector4 Weights;
     };
